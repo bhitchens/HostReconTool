@@ -1,5 +1,7 @@
 Fjer Host Analysis Tool
 
+Run hostAnalysis with desired switches.
+
 If run run without -r or --remote, the program will run the provided switches on the local system. If run with 
 -r or --remote, ensure you run the command line with an account that has permission to run WMI on the remote 
 system. The system data WMI command is run automatically.

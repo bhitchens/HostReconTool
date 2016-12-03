@@ -66,7 +66,8 @@ sys.exit()'''
 if "-h" in sys.argv or "--help" in sys.argv:
 	helpStatement = "The following options are available:\n"
 	helpStatement += "\t-h or --help:\tThis help text\n"
-	helpStatement += "\t-d or --db:\t(Required) Provide full path for database location or just name to save in same directory as script\n"
+	helpStatement += "\t-d or --db:\tProvide full path for database location or just name to save in same directory as script\n"
+	helpStatement += "\t-o or --stout:\tSend results to Standard Out\n"
 	helpStatement += "\t-r or --remote:\tIP Address or CIDR-Notation range of IP Addresses. Exclude for Local Machine\n"
 	helpStatement += "\t-a or --account:User account data\n"
 	helpStatement += "\t-g or --groups:\tGroup data\n"
@@ -76,14 +77,25 @@ if "-h" in sys.argv or "--help" in sys.argv:
 	print helpStatement
 	sys.exit()
 
+outputFail = False
+	
 try:
 	database = sys.argv[sys.argv.index("-d") + 1]
 except ValueError:
 	try:
 		database = sys.argv[sys.argv.index("--db") + 1]
 	except ValueError:
-		print "Error: Database name must be included using -d or --db"
-		sys.exit()
+		outputFail = True
+
+try:
+	sys.argv.index("-o")
+except ValueError:
+	try:
+		sys.argv.index("--stout")
+	except ValueError:
+		if outputFail:
+			print "Either -d or --db with database name or -o or --stout is required.
+			sys.exit()
 
 #check for remote IP address switch
 ip = ""		
