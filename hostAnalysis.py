@@ -1,12 +1,7 @@
 from _winreg import *
 from netaddr import IPNetwork
 import sys, netaddr, wmiqueries
- 
 
-computerName = ""
-	
-mUser = ""
-mPassword = ""
 remote = ""
 database = ""
 
@@ -73,8 +68,6 @@ if "-h" in sys.argv or "--help" in sys.argv:
 	helpStatement += "\t-h or --help:\tThis help text\n"
 	helpStatement += "\t-d or --db:\t(Required) Provide full path for database location or just name to save in same directory as script\n"
 	helpStatement += "\t-r or --remote:\tIP Address or CIDR-Notation range of IP Addresses. Exclude for Local Machine\n"
-	helpStatement += "\t-u or --user:\tUser Name for remote system (must be used with -r)\n"
-	helpStatement += "\t-p or --pass:\tPassword for remote system (must be used with -r and -u)\n"
 	helpStatement += "\t-a or --account:User account data\n"
 	helpStatement += "\t-g or --groups:\tGroup data\n"
 	helpStatement += "\t-l or --ldisks:\tLogical Disk data\n"
@@ -91,24 +84,6 @@ except ValueError:
 	except ValueError:
 		print "Error: Database name must be included using -d or --db"
 		sys.exit()
-		
-#check for user name
-try:
-	user = sys.argv[sys.argv.index("-u") + 1]
-except ValueError:
-	try:
-		user = sys.argv[sys.argv.index("--user") + 1]
-	except ValueError:
-		user = ""
-		
-#check for password
-try:
-	password = sys.argv[sys.argv.index("-p") + 1]
-except ValueError:
-	try:
-		password = sys.argv[sys.argv.index("--pass") + 1]
-	except ValueError:
-		password = ""
 
 #check for remote IP address switch
 ip = ""		

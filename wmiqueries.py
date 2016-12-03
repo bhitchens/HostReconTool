@@ -5,10 +5,8 @@ class WMIConnection:
 	ipAddr = ""
 	database = ""
 	
-	def __init__(self, remote, user, password):
+	def __init__(self, remote):
 		self.remote = remote
-		self.user = user
-		self.password = password
 		self.w = None
 		global ipAddr
 		if remote != "":			
@@ -17,20 +15,11 @@ class WMIConnection:
 			ipAddr = socket.gethostbyname(socket.gethostname())
 		
 	def connect(self, namespace):
-		if self.password != "":
-			self.w = wmi.WMI(self.remote, user=self.user, password=self.password, namespace=mNamespace)
-		elif self.user != "":
-			self.w = wmi.WMI(self.remote, user=self.user, namespace=mNamespace)
-		elif self.remote != "":
+		if self.remote != "":
 			self.w = wmi.WMI(self.remote, namespace=mNamespace)
 		self.w = wmi.WMI(namespace=mNamespace)
 
 	def connect(self):
-		if self.password != "":
-			print "--" + self.user + "--"
-			self.w = wmi.WMI(self.remote, user=self.user, password=self.password)
-		elif self.user != "":
-			self.w = wmi.WMI(self.remote, user=self.user)
 		elif self.remote != "":
 			self.w = wmi.WMI(self.remote)
 		self.w = wmi.WMI()
