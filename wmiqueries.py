@@ -21,7 +21,7 @@ class WMIConnection:
 		self.w = wmi.WMI(namespace=mNamespace)
 
 	def connect(self):
-		elif self.remote != "":
+		if self.remote != "":
 			self.w = wmi.WMI(self.remote)
 		self.w = wmi.WMI()
 	
@@ -34,7 +34,7 @@ class WMIConnection:
 
 		
 	def sysData(self):
-		if db != "":
+		if self.database != "":
 			try:
 				db = sqlite3.connect(self.database)
 				c = db.cursor()
@@ -49,12 +49,12 @@ class WMIConnection:
 				db.close()
 			except sqlite3.IntegrityError:
 				pass
-		if stout:
+		if self.stout:
 			print self.w.Win32_ComputerSystem()[0]
 		return
 	
 	def userData(self):		
-		if db != "":
+		if self.database != "":
 			try:
 				db = sqlite3.connect(self.database)
 				c = db.cursor()
@@ -69,13 +69,13 @@ class WMIConnection:
 				db.close()
 			except sqlite3.IntegrityError:
 				pass
-		if stout:
+		if self.stout:
 			for account in self.w.Win32_UserAccount():
 				print account
 		return
 
 	def netLogin(self):
-		if db != "":
+		if self.database != "":
 			try:
 				db = sqlite3.connect(self.database)
 				c = db.cursor()
@@ -90,13 +90,13 @@ class WMIConnection:
 				db.close()
 			except sqlite3.IntegrityError:
 				pass		
-		if stout:
+		if self.stout:
 			for login in self.w.Win32_NetworkLoginProfile():
 				print login
 		return
 	
 	def groupData(self):		
-		if db != "":
+		if self.database != "":
 			db = sqlite3.connect(self.database)
 			c = db.cursor()	
 			try:	
@@ -111,13 +111,13 @@ class WMIConnection:
 				db.close()
 			except sqlite3.IntegrityError:
 				pass
-		if stout:
+		if self.stout:
 			for group in self.w.Win32_Group():
 				print group
 		return	
 
 	def logicalDisks(self):		
-		if db != "":
+		if self.database != "":
 			try:
 				db = sqlite3.connect(self.database)
 				c = db.cursor()
@@ -132,13 +132,13 @@ class WMIConnection:
 				db.close()
 			except sqlite3.IntegrityError:
 				pass		
-		if stout:
+		if self.stout:
 			for disk in self.w.Win32_LogicalDisk():
 				print disk
 		return
 		
 	def timeZone(self):		
-		if db != "":
+		if self.database != "":
 			try:
 				db = sqlite3.connect(self.database)
 				c = db.cursor()
@@ -153,13 +153,13 @@ class WMIConnection:
 				db.close()
 			except sqlite3.IntegrityError:
 				pass
-		if stout:
+		if self.stout:
 			for zone in self.w.Win32_TimeZone():
 				print zone
 		return
 		
 	def startupPrograms(self):		
-		if db != "":
+		if self.database != "":
 			try:
 				db = sqlite3.connect(self.database)
 				c = db.cursor()
@@ -174,7 +174,7 @@ class WMIConnection:
 					pass
 			db.commit()
 			db.close()
-		if stout:
+		if self.stout:
 			for program in self.w.Win32_StartupCommand():
 				print program
 		return	

@@ -4,6 +4,7 @@ import sys, netaddr, wmiqueries
 
 remote = ""
 database = ""
+stout = False
 
 def runSwitches(connection):		
 	if len(sys.argv) == 3:
@@ -20,6 +21,8 @@ def runSwitches(connection):
 			i += 2
 		elif arg == "-r" or arg == "--remote":
 			i += 2
+		elif arg == "-o" or arg == "--stout":
+			i += 1
 		elif arg == "-a" or arg == "--account":
 			connection.userData()
 			i += 1
@@ -89,12 +92,14 @@ except ValueError:
 
 try:
 	sys.argv.index("-o")
+	stout = True
 except ValueError:
 	try:
 		sys.argv.index("--stout")
+		stout = True
 	except ValueError:
 		if outputFail:
-			print "Either -d or --db with database name or -o or --stout is required.
+			print "Either -d or --db with database name or -o or --stout is required."
 			sys.exit()
 
 #check for remote IP address switch
@@ -115,12 +120,14 @@ if ip != "":
 			connection = wmiqueries.WMIConnection(remote, user, password)
 			connection.connect()
 			connection.database = database
+			connection.stout = stout
 			runSwitches(connection)
 	except netaddr.core.AddrFormatError:
 		print "Invalid network address"
 		sys.exit()
 else:
-	connection = wmiqueries.WMIConnection(remote, user, password)
+	connection = wmiqueries.WMIConnection(remote)
 	connection.connect()
 	connection.database = database
+	connection.stout = stout
 	runSwitches(connection)
