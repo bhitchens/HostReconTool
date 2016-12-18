@@ -6,13 +6,16 @@ If run run without -r or --remote, the program will run the provided switches on
 -r or --remote, ensure you run the command line with an account that has permission to run WMI on the remote 
 system. The system data WMI command is run automatically.
 
--h or --help: This help text 
--d or --db: (Required) Provide full path for database location or just name to save in same directory as script 
--r or --remote: IP Address or CIDR-Notation range of IP Addresses. Exclude for Local Machine 
--u or --user: User Name for remote system (must be used with -r) 
--p or --pass: Password for remote system (must be used with -r and -u) 
--a or --account: User account data 
--g or --groups: Group data 
--l or --ldisks: Logical Disk data 
--t or --timezone: Timezone data 
--s or --startup: Startup Program data 
+-h or --help:           This help text
+-d or --db:             Provide database name or full path to specify location
+-o or --stout:          Send results to Standard Out
+-r or --remote:         IP Address or CIDR-Notation range of IP Addresses. Exclude for Local Machine
+-u or --users:          User account data
+-g or --groups:         Group data
+-l or --ldisks:         Logical Disk data
+-t or --timezone:       Timezone data
+-s or --startup:        Startup Program data
+-p or --profiles:       User Profiles data
+-a or --adapters:       Netork Adapter data
+-P or --process:        Processes data
+-S or --services:       Services data

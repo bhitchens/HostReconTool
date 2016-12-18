@@ -163,9 +163,9 @@ class WMIConnection:
 			try:
 				db = sqlite3.connect(self.database)
 				c = db.cursor()
-				c.execute('''CREATE TABLE startup_programs (ipAddr text, Caption text, Description text, SettingID text, Command text, Location text, Name text, User text, UserSID, unique (ipAddr, Caption, UserSID))''')
+				c.execute('''CREATE TABLE startup_programs (ipAddr text, Caption text, Description text, SettingID text, Command text, Location text, Name text, User text, UserSID text, unique (ipAddr, Caption, UserSID))''')
 			except sqlite3.OperationalError:
-				pass	
+				pass
 			for program in self.w.Win32_StartupCommand():
 				try:
 					programData = (ipAddr, self.check(program, "Caption"), self.check(program, "Description"), self.check(program, "SettingID"), self.check(program, "Command"), self.check(program, "Location"), self.check(program, "Name"), self.check(program, "User"), self.check(program, "UserSID"))
@@ -177,4 +177,91 @@ class WMIConnection:
 		if self.stout:
 			for program in self.w.Win32_StartupCommand():
 				print program
+		return
+
+	def userProfiles(self):		
+		if self.database != "":
+			try:
+				db = sqlite3.connect(self.database)
+				c = db.cursor()
+				c.execute('''CREATE TABLE user_profiles (ipAddr text, SID text, LocalPath text, Loaded text, refCount text, Special text, RoamingConfigured text, RoamingPath text, RoamingPreference text, Status text, LastUseTime text, LastDownloadTime text, LastUploadTime text, HealthStatus text, LastAttemptedProfileDownloadTime text, LastAttemptedProfileUploadTime text, LastBackgroundRegistryUploadTime text, AppDataRoaming text, Desktop text, StartMenu text, Documents text, Pictures text, Music text, Videos text, Favorites text, Contacts text, Downloads text, Links text, Searches text, SavedGames text, unique (ipAddr, SID, LastUseTime))''')
+			except sqlite3.OperationalError:
+				pass
+			for profile in self.w.Win32_UserProfile():
+				try:
+					profileData = (ipAddr, self.check(profile, "SID"), self.check(profile, "LocalPath"), self.check(profile, "Loaded"), self.check(profile, "refCount"), self.check(profile, "Special"), self.check(profile, "RoamingConfigured"), self.check(profile, "RoamingPath"), self.check(profile, "RoamingPreference"), self.check(profile, "Status"), self.check(profile, "LastUseTime"), self.check(profile, "LastDownloadTime"), self.check(profile, "LastUploadTime"), self.check(profile, "HealthStatus"), self.check(profile, "LastAttemptedProfileDownloadTime"), self.check(profile, "LastAttemptedProfileUploadTime"), self.check(profile, "LastBackgroundRegistryUploadTime"), self.check(profile, "AppDataRoaming"), self.check(profile, "Desktop"), self.check(profile, "StartMenu"), self.check(profile, "Documents"), self.check(profile, "Pictures"), self.check(profile, "Music"), self.check(profile, "Videos"), self.check(profile, "Favorites"), self.check(profile, "Contacts"), self.check(profile, "Downloads"), self.check(profile, "Links"), self.check(profile, "Searches"), self.check(profile, "SavedGames"))
+					c.execute('INSERT INTO user_profiles VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', profileData)
+				except sqlite3.IntegrityError:
+					pass
+			db.commit()
+			db.close()
+		if self.stout:
+			for profile in self.w.Win32_UserProfile():
+				print profile
+		return		
+		
+	def networkAdapters(self):		
+		if self.database != "":
+			try:
+				db = sqlite3.connect(self.database)
+				c = db.cursor()
+				c.execute('''CREATE TABLE network_adapters (ipAddr text, Caption text, Description text, SettingID text, ArpAlwaysSourceRoute text, ArpUseEtherSNAP text, DatabasePath text, DeadGWDetectEnabled text, DefaultIPGateway text, DefaultTOS text, DefaultTTL text, DHCPEnabled text, DHCPLeaseExpires text, DHCPLeaseObtained text, DHCPServer text, DNSDomain text, DNSDomainSuffixSearchOrder text, DNSEnabledForWINSResolution text, DNSHostName text, DNSServerSearchOrder text, DomainDNSRegistrationEnabled text, ForwardBufferMemory text, FullDNSRegistrationEnabled text, GatewayCostMetric text, IGMPLevel text, _Index text, InterfaceIndex text, IPAddress text, IPConnectionMetric text, IPEnabled text, IPFilterSecurityEnabled text, IPPortSecurityEnabled text, IPSecPermitIPProtocols text, IPSecPermitTCPPorts text, IPSecPermitUDPPorts text, IPSubnet text, IPUseZeroBroadcast text, IPXAddress text, IPXEnabled text, IPXFrameType text, IPXMediaType text, IPXNetworkNumber text, IPXVirtualNetNumber text, KeepAliveInterval text, KeepAliveTime text, MACAddress text, MTU text, NumForwardPackets text, PMTUBHDetectEnabled text, PMTUDiscoveryEnabled text, ServiceName text, TcpipNetbiosOptions text, TcpMaxConnectRetransmissions text, TcpMaxDataRetransmissions text, TcpNumConnections text, TcpUseRFC1122UrgentPointer text, TcpWindowSize text, WINSEnableLMHostsLookup text, WINSHostLookupFile text, WINSPrimaryServer text, WINSScopeID text, WINSSecondaryServer text, unique (ipAddr, MACAddress))''')
+			except sqlite3.OperationalError:
+				pass
+			for adapter in self.w.Win32_NetworkAdapterConfiguration():
+				try:
+					adapterData = (ipAddr, self.check(adapter, "Caption"), self.check(adapter, "Description"), self.check(adapter, "SettingID"), self.check(adapter, "ArpAlwaysSourceRoute"), self.check(adapter, "ArpUseEtherSNAP"), self.check(adapter, "DatabasePath"), self.check(adapter, "DeadGWDetectEnabled"), self.check(adapter, "DefaultIPGateway"), self.check(adapter, "DefaultTOS"), self.check(adapter, "DefaultTTL"), self.check(adapter, "DHCPEnabled"), self.check(adapter, "DHCPLeaseExpires"), self.check(adapter, "DHCPLeaseObtained"), self.check(adapter, "DHCPServer"), self.check(adapter, "DNSDomain"), self.check(adapter, "DNSDomainSuffixSearchOrder"), self.check(adapter, "DNSEnabledForWINSResolution"), self.check(adapter, "DNSHostName"), self.check(adapter, "DNSServerSearchOrder"), self.check(adapter, "DomainDNSRegistrationEnabled"), self.check(adapter, "ForwardBufferMemory"), self.check(adapter, "FullDNSRegistrationEnabled"), self.check(adapter, "GatewayCostMetric"), self.check(adapter, "IGMPLevel"), self.check(adapter, "Index"), self.check(adapter, "InterfaceIndex"), self.check(adapter, "IPAddress"), self.check(adapter, "IPConnectionMetric"), self.check(adapter, "IPEnabled"), self.check(adapter, "IPFilterSecurityEnabled"), self.check(adapter, "IPPortSecurityEnabled"), self.check(adapter, "IPSecPermitIPProtocols"), self.check(adapter, "IPSecPermitTCPPorts"), self.check(adapter, "IPSecPermitUDPPorts"), self.check(adapter, "IPSubnet"), self.check(adapter, "IPUseZeroBroadcast"), self.check(adapter, "IPXAddress"), self.check(adapter, "IPXEnabled"), self.check(adapter, "IPXFrameType"), self.check(adapter, "IPXMediaType"), self.check(adapter, "IPXNetworkNumber"), self.check(adapter, "IPXVirtualNetNumber"), self.check(adapter, "KeepAliveInterval"), self.check(adapter, "KeepAliveTime"), self.check(adapter, "MACAddress"), self.check(adapter, "MTU"), self.check(adapter, "NumForwardPackets"), self.check(adapter, "PMTUBHDetectEnabled"), self.check(adapter, "PMTUDiscoveryEnabled"), self.check(adapter, "ServiceName"), self.check(adapter, "TcpipNetbiosOptions"), self.check(adapter, "TcpMaxConnectRetransmissions"), self.check(adapter, "TcpMaxDataRetransmissions"), self.check(adapter, "TcpNumConnections"), self.check(adapter, "TcpUseRFC1122UrgentPointer"), self.check(adapter, "TcpWindowSize"), self.check(adapter, "WINSEnableLMHostsLookup"), self.check(adapter, "WINSHostLookupFile"), self.check(adapter, "WINSPrimaryServer"), self.check(adapter, "WINSScopeID"), self.check(adapter, "WINSSecondaryServer"))
+					c.execute('INSERT INTO network_adapters VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', adapterData)
+				except sqlite3.IntegrityError:
+					pass
+			db.commit()
+			db.close()
+		if self.stout:
+			for adapter in self.w.Win32_NetworkAdapterConfiguration():
+				print adapter
+		return
+
+	def processes(self):		
+		if self.database != "":
+			try:
+				db = sqlite3.connect(self.database)
+				c = db.cursor()
+				c.execute('''CREATE TABLE processes (ipAddr text, CreationClassName text, Caption text, CommandLine text, CreationDate text, CSCreationClassName text, CSName text, Description text, ExecutablePath text, ExecutionState text, Handle text, HandleCount text, InstallDate text, KernelModeTime text, MaximumWorkingSetSize text, MinimumWorkingSetSize text, Name text, OSCreationClassName text, OSName text, OtherOperationCount text, OtherTransferCount text, PageFaults text, PageFileUsage text, ParentProcessId text, PeakPageFileUsage text, PeakVirtualSize text, PeakWorkingSetSize text, Priority text, PrivatePageCount text, ProcessId text, QuotaNonPagedPoolUsage text, QuotaPagedPoolUsage text, QuotaPeakNonPagedPoolUsage text, QuotaPeakPagedPoolUsage text, ReadOperationCount text, ReadTransferCount text, SessionId text, Status text, TerminationDate text, ThreadCount text, UserModeTime text, VirtualSize text, WindowsVersion text, WorkingSetSize text, WriteOperationCount text, WriteTransferCount text, unique (ipAddr, ProcessId))''')
+			except sqlite3.OperationalError:
+				pass
+			for process in self.w.win32_process():
+				try:
+					processData = (ipAddr, self.check(process, "CreationClassName"), self.check(process, "Caption"), self.check(process, "CommandLine"), self.check(process, "CreationDate"), self.check(process, "CSCreationClassName"), self.check(process, "CSName"), self.check(process, "Description"), self.check(process, "ExecutablePath"), self.check(process, "ExecutionState"), self.check(process, "Handle"), self.check(process, "HandleCount"), self.check(process, "InstallDate"), self.check(process, "KernelModeTime"), self.check(process, "MaximumWorkingSetSize"), self.check(process, "MinimumWorkingSetSize"), self.check(process, "Name"), self.check(process, "OSCreationClassName"), self.check(process, "OSName"), self.check(process, "OtherOperationCount"), self.check(process, "OtherTransferCount"), self.check(process, "PageFaults"), self.check(process, "PageFileUsage"), self.check(process, "ParentProcessId"), self.check(process, "PeakPageFileUsage"), self.check(process, "PeakVirtualSize"), self.check(process, "PeakWorkingSetSize"), self.check(process, "Priority"), self.check(process, "PrivatePageCount"), self.check(process, "ProcessId"), self.check(process, "QuotaNonPagedPoolUsage"), self.check(process, "QuotaPagedPoolUsage"), self.check(process, "QuotaPeakNonPagedPoolUsage"), self.check(process, "QuotaPeakPagedPoolUsage"), self.check(process, "ReadOperationCount"), self.check(process, "ReadTransferCount"), self.check(process, "SessionId"), self.check(process, "Status"), self.check(process, "TerminationDate"), self.check(process, "ThreadCount"), self.check(process, "UserModeTime"), self.check(process, "VirtualSize"), self.check(process, "WindowsVersion"), self.check(process, "WorkingSetSize"), self.check(process, "WriteOperationCount"), self.check(process, "WriteTransferCount"))
+					c.execute('INSERT INTO processes VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', processData)
+				except sqlite3.IntegrityError:
+					pass
+			db.commit()
+			db.close()
+		if self.stout:
+			for process in self.w.win32_process():
+				print process
+		return
+		
+	def services(self):		
+		if self.database != "":
+			try:
+				db = sqlite3.connect(self.database)
+				db.text_factory = str
+				c = db.cursor()
+				c.execute('''CREATE TABLE services (ipAddr text, AcceptPause text, AcceptStop text, Caption text, CheckPoint text, CreationClassName text, DelayedAutoStart text, Description text, DesktopInteract text, DisplayName text, ErrorControl text, ExitCode text, InstallDate text, Name text, PathName text, ProcessId text, ServiceSpecificExitCode text, ServiceType text, Started text, StartMode text, StartName text, State text, Status text, SystemCreationClassName text, SystemName text, TagId text, WaitHint text, unique (ipAddr, ProcessId, Caption))''')
+			except sqlite3.OperationalError:
+				pass
+			for service in self.w.win32_Service():
+				try:
+					serviceData = (ipAddr, self.check(service, "AcceptPause"), self.check(service, "AcceptStop"), self.check(service, "Caption"), self.check(service, "CheckPoint"), self.check(service, "CreationClassName"), self.check(service, "DelayedAutoStart"), self.check(service, "Description"), self.check(service, "DesktopInteract"), self.check(service, "DisplayName"), self.check(service, "ErrorControl"), self.check(service, "ExitCode"), self.check(service, "InstallDate"), self.check(service, "Name"), self.check(service, "PathName"), self.check(service, "serviceId"), self.check(service, "ServiceSpecificExitCode"), self.check(service, "ServiceType"), self.check(service, "Started"), self.check(service, "StartMode"), self.check(service, "StartName"), self.check(service, "State"), self.check(service, "Status"), self.check(service, "SystemCreationClassName"), self.check(service, "SystemName"), self.check(service, "TagId"), self.check(service, "WaitHint"))
+					c.execute('INSERT INTO services VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', serviceData)
+				except sqlite3.IntegrityError:
+					pass
+			db.commit()
+			db.close()
+		if self.stout:
+			for service in self.w.win32_Service():
+				print service
 		return	
+		
+

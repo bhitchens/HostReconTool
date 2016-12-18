@@ -2,6 +2,9 @@ from _winreg import *
 from netaddr import IPNetwork
 import sys, netaddr, wmiqueries
 
+reload(sys)
+sys.setdefaultencoding('utf-8')
+
 remote = ""
 database = ""
 stout = False
@@ -23,7 +26,7 @@ def runSwitches(connection):
 			i += 2
 		elif arg == "-o" or arg == "--stout":
 			i += 1
-		elif arg == "-a" or arg == "--account":
+		elif arg == "-u" or arg == "--users":
 			connection.userData()
 			i += 1
 		elif arg == "-n" or arg == "--netlogin":
@@ -32,7 +35,7 @@ def runSwitches(connection):
 		elif arg == "-g" or arg == "--groups":
 			connection.groupData()
 			i += 1
-		elif arg == "--ldisks":
+		elif arg == "-l" or arg == "--ldisks":
 			connection.logicalDisks()
 			i += 1
 		elif arg == "-t" or arg == "--timezone":
@@ -40,6 +43,18 @@ def runSwitches(connection):
 			i += 1
 		elif arg == "-s" or arg == "--startup":
 			connection.startupPrograms()
+			i += 1
+		elif arg == "-p" or arg == "--profiles":
+			connection.userProfiles()
+			i += 1
+		elif arg == "-a" or arg == "--adapters":
+			connection.networkAdapters()
+			i += 1
+		elif arg == "-P" or arg == "--process":
+			connection.processes()
+			i += 1
+		elif arg == "-S" or arg == "--service":
+			connection.services()
 			i += 1
 		else:
 			print "Error: unrecognized switch"
@@ -55,28 +70,34 @@ def testDBQuery():
 	db.close()
 
 def testWMIQuery():
-	w = connect()
-	for item in w.Win32_StartupCommand():
+	connection = wmiqueries.WMIConnection(remote)
+	connection.connect()
+	connection.database = database
+	connection.stout = stout
+	for item in connection.w.win32_Service():
 		print item
 	
 #use this for testing
 '''testWMIQuery()
 sys.exit()'''
-	
-	
-#Actual start is here	
 
+	
+#Actual start is here
 if "-h" in sys.argv or "--help" in sys.argv:
 	helpStatement = "The following options are available:\n"
-	helpStatement += "\t-h or --help:\tThis help text\n"
-	helpStatement += "\t-d or --db:\tProvide full path for database location or just name to save in same directory as script\n"
-	helpStatement += "\t-o or --stout:\tSend results to Standard Out\n"
-	helpStatement += "\t-r or --remote:\tIP Address or CIDR-Notation range of IP Addresses. Exclude for Local Machine\n"
-	helpStatement += "\t-a or --account:User account data\n"
-	helpStatement += "\t-g or --groups:\tGroup data\n"
-	helpStatement += "\t-l or --ldisks:\tLogical Disk data\n"
-	helpStatement += "\t-t or --timezone:Timezone data\n"
-	helpStatement += "\t-s or --startup:Startup Program data\n"
+	helpStatement += "\t-h or --help:\t\tThis help text\n"
+	helpStatement += "\t-d or --db:\t\tProvide database name or full path to specify location\n"
+	helpStatement += "\t-o or --stout:\t\tSend results to Standard Out\n"
+	helpStatement += "\t-r or --remote:\t\tIP Address or CIDR-Notation range of IP Addresses. Exclude for Local Machine\n"
+	helpStatement += "\t-u or --users:\t\tUser account data\n"
+	helpStatement += "\t-g or --groups:\t\tGroup data\n"
+	helpStatement += "\t-l or --ldisks:\t\tLogical Disk data\n"
+	helpStatement += "\t-t or --timezone:\tTimezone data\n"
+	helpStatement += "\t-s or --startup:\tStartup Program data\n"
+	helpStatement += "\t-p or --profiles:\tUser Profiles data\n"
+	helpStatement += "\t-a or --adapters:\tNetork Adapter data\n"
+	helpStatement += "\t-P or --process:\tProcesses data\n"
+	helpStatement += "\t-S or --services:\Services data\n"
 	print helpStatement
 	sys.exit()
 
