@@ -1,4 +1,4 @@
-from _winreg import *
+#from _winreg import *
 from netaddr import IPNetwork
 import sys, netaddr, wmiqueries
 

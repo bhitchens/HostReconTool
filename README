@@ -1,6 +1,12 @@
 Fjer Host Analysis Tool
 
-Run hostAnalysis with desired switches.
+Dependencies:
+Python 2.7
+pywin32: https://pypi.python.org/pypi/pywin32
+python WMI: https://pypi.python.org/pypi/WMI/
+netaddr: https://pypi.python.org/pypi/netaddr
+
+Run hostAnalysis.py with desired switches.
 
 If run run without -r or --remote, the program will run the provided switches on the local system. If run with 
 -r or --remote, ensure you run the command line with an account that has permission to run WMI on the remote 
