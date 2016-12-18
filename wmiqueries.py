@@ -264,4 +264,24 @@ class WMIConnection:
 				print service
 		return	
 		
-
+	def shares(self):		
+		if self.database != "":
+			try:
+				db = sqlite3.connect(self.database)
+				db.text_factory = str
+				c = db.cursor()
+				c.execute('''CREATE TABLE shares (ipAddr text, Caption text, Description text, InstallDate text, Status text, AccessMask text, AllowMaximum text, MaximumAllowed text, Name text, Path text, Type text, unique (ipAddr, Path))''')
+			except sqlite3.OperationalError:
+				pass
+			for shares in self.w.Win32_Share():
+				try:
+					shareData = (ipAddr, self.check(shares, "Caption"), self.check(shares, "Description"), self.check(shares, "InstallDate"), self.check(shares, "Status"), self.check(shares, "AccessMask"), self.check(shares, "AllowMaximum"), self.check(shares, "MaximumAllowed"), self.check(shares, "Name"), self.check(shares, "Path"), self.check(shares, "Type"))
+					c.execute('INSERT INTO shares VALUES (?,?,?,?,?,?,?,?,?,?,?)', shareData)
+				except sqlite3.IntegrityError:
+					pass
+			db.commit()
+			db.close()
+		if self.stout:
+			for shares in self.w.Win32_Share():
+				print shares
+		return

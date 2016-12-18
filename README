@@ -25,3 +25,4 @@ system. The system data WMI command is run automatically.
 -a or --adapters:       Netork Adapter data
 -P or --process:        Processes data
 -S or --services:       Services data
+-r or --shares:         Shared Resources data

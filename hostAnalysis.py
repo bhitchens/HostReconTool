@@ -1,4 +1,3 @@
-#from _winreg import *
 from netaddr import IPNetwork
 import sys, netaddr, wmiqueries
 
@@ -22,7 +21,7 @@ def runSwitches(connection):
 			connection.sysData()
 		if arg == "-d" or arg == "--db":
 			i += 2
-		elif arg == "-r" or arg == "--remote":
+		elif arg == "-i" or arg == "--remote":
 			i += 2
 		elif arg == "-o" or arg == "--stout":
 			i += 1
@@ -56,6 +55,9 @@ def runSwitches(connection):
 		elif arg == "-S" or arg == "--service":
 			connection.services()
 			i += 1
+		elif arg == "-r" or arg == "--shares":
+			connection.shares()
+			i += 1
 		else:
 			print "Error: unrecognized switch"
 			sys.exit()
@@ -74,7 +76,7 @@ def testWMIQuery():
 	connection.connect()
 	connection.database = database
 	connection.stout = stout
-	for item in connection.w.win32_Service():
+	for item in connection.w.Win32_ShadowCopy():
 		print item
 	
 #use this for testing
@@ -88,7 +90,7 @@ if "-h" in sys.argv or "--help" in sys.argv:
 	helpStatement += "\t-h or --help:\t\tThis help text\n"
 	helpStatement += "\t-d or --db:\t\tProvide database name or full path to specify location\n"
 	helpStatement += "\t-o or --stout:\t\tSend results to Standard Out\n"
-	helpStatement += "\t-r or --remote:\t\tIP Address or CIDR-Notation range of IP Addresses. Exclude for Local Machine\n"
+	helpStatement += "\t-i or --remote:\t\tIP Address or CIDR-Notation range of IP Addresses. Exclude for Local Machine\n"
 	helpStatement += "\t-u or --users:\t\tUser account data\n"
 	helpStatement += "\t-g or --groups:\t\tGroup data\n"
 	helpStatement += "\t-l or --ldisks:\t\tLogical Disk data\n"
@@ -97,7 +99,8 @@ if "-h" in sys.argv or "--help" in sys.argv:
 	helpStatement += "\t-p or --profiles:\tUser Profiles data\n"
 	helpStatement += "\t-a or --adapters:\tNetork Adapter data\n"
 	helpStatement += "\t-P or --process:\tProcesses data\n"
-	helpStatement += "\t-S or --services:\Services data\n"
+	helpStatement += "\t-S or --services:\tServices data\n"
+	helpStatement += "\t-r or --shares:\t\tShared Resources data\n"
 	print helpStatement
 	sys.exit()
 
@@ -126,7 +129,7 @@ except ValueError:
 #check for remote IP address switch
 ip = ""		
 try:
-	ip = sys.argv[sys.argv.index("-r") + 1]
+	ip = sys.argv[sys.argv.index("-i") + 1]
 except ValueError:
 	try:
 		ip = sys.argv[sys.argv.index("--remote") + 1]
