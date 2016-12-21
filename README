@@ -15,8 +15,9 @@ system. The system data WMI command is run automatically.
 -h or --help:           This help text
 -d or --db:             Provide database name or full path to specify location
 -o or --stout:          Send results to Standard Out
--r or --remote:         IP Address or CIDR-Notation range of IP Addresses. Exclude for Local Machine
+-i or --remote:         IP Address or CIDR-Notation range of IP Addresses. Exclude for Local Machine
 -u or --users:          User account data
+-n or --netlogin:       Network Login data
 -g or --groups:         Group data
 -l or --ldisks:         Logical Disk data
 -t or --timezone:       Timezone data
@@ -26,3 +27,5 @@ system. The system data WMI command is run automatically.
 -P or --process:        Processes data
 -S or --services:       Services data
 -r or --shares:         Shared Resources data
+-D or --pdisks:         Physical Disk data
+-m or --memory:         Physical Memory data

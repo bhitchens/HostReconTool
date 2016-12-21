@@ -64,6 +64,9 @@ def runSwitches(connection):
 		elif arg == "-D" or arg == "--pdisks":
 			connection.physicalDisks()
 			i += 1
+		elif arg == "-m" or arg == "--memory":
+			connection.physicalMemory()
+			i += 1
 		else:
 			print "Error: unrecognized switch"
 			sys.exit()
@@ -83,7 +86,7 @@ def testWMIQuery():
 	connection.connect()
 	connection.database = database
 	connection.stout = stout
-	for item in connection.w.Win32_DiskDrive():
+	for item in connection.w.Win32_PhysicalMemory():
 		print item
 	
 #use this for testing
@@ -96,22 +99,23 @@ sys.exit()'''
 #help message
 if "-h" in sys.argv or "--help" in sys.argv:
 	helpStatement = "The following options are available:\n"
-	helpStatement += "\t-h or --help:\t\tThis help text\n"
-	helpStatement += "\t-d or --db:\t\tProvide database name or full path to specify location\n"
-	helpStatement += "\t-o or --stout:\t\tSend results to Standard Out\n"
-	helpStatement += "\t-i or --remote:\t\tIP Address or CIDR-Notation range of IP Addresses. Exclude for Local Machine\n"
-	helpStatement += "\t-u or --users:\t\tUser account data\n"
-	helpStatement += "\t-n or --netlogin:\t\tNetwork Login data\n"
-	helpStatement += "\t-g or --groups:\t\tGroup data\n"
-	helpStatement += "\t-l or --ldisks:\t\tLogical Disk data\n"
-	helpStatement += "\t-t or --timezone:\tTimezone data\n"
-	helpStatement += "\t-s or --startup:\tStartup Program data\n"
-	helpStatement += "\t-p or --profiles:\tUser Profiles data\n"
-	helpStatement += "\t-a or --adapters:\tNetork Adapter data\n"
-	helpStatement += "\t-P or --process:\tProcesses data\n"
-	helpStatement += "\t-S or --services:\tServices data\n"
-	helpStatement += "\t-r or --shares:\t\tShared Resources data\n"
-	helpStatement += "\t-D or --pdisks:\t\tPhysical Disk data\n"
+	helpStatement += "-h or --help:\t\tThis help text\n"
+	helpStatement += "-d or --db:\t\tProvide database name or full path to specify location\n"
+	helpStatement += "-o or --stout:\t\tSend results to Standard Out\n"
+	helpStatement += "-i or --remote:\t\tIP Address or CIDR-Notation range of IP Addresses. Exclude for Local Machine\n"
+	helpStatement += "-u or --users:\t\tUser account data\n"
+	helpStatement += "-n or --netlogin:\t\tNetwork Login data\n"
+	helpStatement += "-g or --groups:\t\tGroup data\n"
+	helpStatement += "-l or --ldisks:\t\tLogical Disk data\n"
+	helpStatement += "-t or --timezone:\tTimezone data\n"
+	helpStatement += "-s or --startup:\tStartup Program data\n"
+	helpStatement += "-p or --profiles:\tUser Profiles data\n"
+	helpStatement += "-a or --adapters:\tNetork Adapter data\n"
+	helpStatement += "-P or --process:\tProcesses data\n"
+	helpStatement += "-S or --services:\tServices data\n"
+	helpStatement += "-r or --shares:\t\tShared Resources data\n"
+	helpStatement += "-D or --pdisks:\t\tPhysical Disk data\n"
+	helpStatement += "-m or --memory:\t\tPhysical Memory data\n"
 	print helpStatement
 	sys.exit()
 

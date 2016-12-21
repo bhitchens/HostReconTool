@@ -334,3 +334,26 @@ class WMIConnection:
 			for drive in drives:
 				print drive
 		return
+		
+	def physicalMemory(self):
+		memory = self.w.Win32_PhysicalMemory()
+		if self.database != "":
+			try:
+				db = sqlite3.connect(self.database)
+				db.text_factory = str
+				c = db.cursor()
+				c.execute('''CREATE TABLE physical_memory (ipAddr text, Attributes text, BankLabel text, Capacity text, Caption text, ConfiguredClockSpeed text, ConfiguredVoltage text, CreationClassName text, DataWidth text, Description text, DeviceLocator text, FormFactor text, HotSwappable text, InstallDate text, InterleaveDataDepth text, InterleavePosition text, Manufacturer text, MaxVoltage text, MemoryType text, MinVoltage text, Model text, Name text, OtherIdentifyingInfo text, PartNumber text, PositionInRow text, PoweredOn text, Removable text, Replaceable text, SerialNumber text, SKU text, SMBIOSMemoryType text, Speed text, Status text, Tag text, TotalWidth text, TypeDetail text, Version text, unique (ipAddr, SerialNumber, DeviceLocator))''')
+			except sqlite3.OperationalError:
+				pass
+			for mem in memory:
+				try:
+					diskData = (ipAddr, self.check(mem, "Attributes"), self.check(mem, "BankLabel"), self.check(mem, "Capacity"), self.check(mem, "Caption"), self.check(mem, "ConfiguredClockSpeed"), self.check(mem, "ConfiguredVoltage"), self.check(mem, "CreationClassName"), self.check(mem, "DataWidth"), self.check(mem, "Description"), self.check(mem, "DeviceLocator"), self.check(mem, "FormFactor"), self.check(mem, "HotSwappable"), self.check(mem, "InstallDate"), self.check(mem, "InterleaveDataDepth"), self.check(mem, "InterleavePosition"), self.check(mem, "Manufacturer"), self.check(mem, "MaxVoltage"), self.check(mem, "MemoryType"), self.check(mem, "MinVoltage"), self.check(mem, "Model"), self.check(mem, "Name"), self.check(mem, "OtherIdentifyingInfo"), self.check(mem, "PartNumber"), self.check(mem, "PositionInRow"), self.check(mem, "PoweredOn"), self.check(mem, "Removable"), self.check(mem, "Replaceable"), self.check(mem, "SerialNumber"), self.check(mem, "SKU"), self.check(mem, "SMBIOSMemoryType"), self.check(mem, "Speed"), self.check(mem, "Status"), self.check(mem, "Tag"), self.check(mem, "TotalWidth"), self.check(mem, "TypeDetail"), self.check(mem, "Version"))
+					c.execute('INSERT INTO physical_memory VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', diskData)
+				except sqlite3.IntegrityError:
+					pass
+			db.commit()
+			db.close()
+		if self.stout:
+			for mem in memory:
+				print mem
+		return
