@@ -10,16 +10,20 @@ class WMIConnection:
 		self.remote = remote
 		self.w = None
 		global ipAddr
-		if remote != "":			
+		#if a remote IP has been provided, set the ipAddr global to that IP
+		if remote != "":
 			ipAddr = remote
+		#else set it to the local system's IP
 		else:
 			ipAddr = socket.gethostbyname(socket.gethostname())
 		
+	#make a WMI connection with a non-standard namespace
 	def connect(self, namespace):
 		if self.remote != "":
 			self.w = wmi.WMI(self.remote, namespace=mNamespace)
 		self.w = wmi.WMI(namespace=mNamespace)
 
+	#make a WMI connection with the standard namespace
 	def connect(self):
 		if self.remote != "":
 			self.w = wmi.WMI(self.remote)
@@ -32,28 +36,40 @@ class WMIConnection:
 		except AttributeError:
 			return "NO RESULT"
 
-		
+	#comments on this method apply to the other WMI methods
 	def sysData(self):
+		#get the WMI data
+		sys = self.w.Win32_ComputerSystem()[0]
+		#if a db has been provided
 		if self.database != "":
 			try:
+				#connect to the db
 				db = sqlite3.connect(self.database)
+				#create a cursor
 				c = db.cursor()
+				#attempt to create the table; will fail if the table is already created
 				c.execute('''CREATE TABLE sys_data (IpAddr TEXT, AdminPasswordStatus TEXT, AutomaticManagedPagefile TEXT, AutomaticResetBootOption TEXT, AutomaticResetCapability TEXT, BootROMSupported TEXT, BootStatus TEXT, BootupState TEXT, Caption TEXT, ChassisBootupState TEXT, ChassisSKUNumber TEXT, CreationClassName TEXT, CurrentTimeZone TEXT, Description TEXT, DNSHostName TEXT, Domain TEXT, DomainRole TEXT, EnableDaylightSavingsTime TEXT, FrontPanelResetStatus TEXT, HypervisorPresent TEXT, InfraredSupported TEXT, KeyboardPasswordStatus TEXT, Manufacturer text, Model text, Name text, NetworkServerModeEnabled text, NumberOfLogicalProcessors text, NumberOfProcessors text, OEMArray text, PartOfDomain text, PauseAfterReset text, PCSystemType text, PCSystemTypeEx text, PowerOnPasswordStatus text, PowerState text, PowerSupplyState text, PrimaryOwnerName text, ResetCapability text, ResetCount text, ResetLimit text, Roles text, Status text, SystemFamily text, SystemSKUNumber text, SystemType text, ThermalState text, TotalPhysicalMemory text, UserName text, WakeUpType text, Workgroup text, unique(Domain,Name))''')
 			except sqlite3.OperationalError:
+				#this error just means the table was already created; this is normal and fine
 				pass	
 			try:
-				sys = self.w.Win32_ComputerSystem()[0]
+				#put the data in a string array, using the check method to process the attributes
 				systemData = (ipAddr, self.check(sys, "AdminPasswordStatus"), self.check(sys, "AutomaticManagedPagefile"), self.check(sys, "AutomaticResetBootOption"), self.check(sys, "AutomaticResetCapability"), self.check(sys, "BootROMSupported"), self.check(sys, "BootStatus"), self.check(sys, "BootupState"), self.check(sys, "Caption"), self.check(sys, "ChassisBootupState"), self.check(sys, "ChassisSKUNumber"), self.check(sys, "CreationClassName"), self.check(sys, "CurrentTimeZone"), self.check(sys, "Description"), self.check(sys, "DNSHostName"), self.check(sys, "Domain"), self.check(sys, "DomainRole"), self.check(sys, "EnableDaylightSavingsTime"), self.check(sys, "FrontPanelResetStatus"), self.check(sys, "HypervisorPresent"), self.check(sys, "InfraredSupported"), self.check(sys, "KeyboardPasswordStatus"), self.check(sys, "Manufacturer"), self.check(sys, "Model"), self.check(sys, "Name"), self.check(sys, "NetworkServerModeEnabled"), self.check(sys, "NumberOfLogicalProcessors"), self.check(sys, "NumberOfProcessors"), self.check(sys, "OEMArray"), self.check(sys, "PartOfDomain"), self.check(sys, "PauseAfterReset"), self.check(sys, "PCSystemType"), self.check(sys, "PCSystemTypeEx"), self.check(sys, "PowerOnPasswordStatus"), self.check(sys, "PowerState"), self.check(sys, "PowerSupplyState"), self.check(sys, "PrimaryOwnerName"), self.check(sys, "ResetCapability"), self.check(sys, "ResetCount"), self.check(sys, "ResetLimit"), self.check(sys, "Roles"), self.check(sys, "Status"), self.check(sys, "SystemFamily"), self.check(sys, "SystemSKUNumber"), self.check(sys, "SystemType"), self.check(sys, "ThermalState"), self.check(sys, "TotalPhysicalMemory"), self.check(sys, "UserName"), self.check(sys, "WakeUpType"), self.check(sys, "Workgroup"))
+				#insert the values into the table
 				c.execute('INSERT INTO sys_data VALUES (?, ?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', systemData)	
+				#commit the db change
 				db.commit()
+				#close the db
 				db.close()
 			except sqlite3.IntegrityError:
 				pass
+		#if standard out is selected, print the WMI data to standard out
 		if self.stout:
-			print self.w.Win32_ComputerSystem()[0]
+			print sys
 		return
 	
-	def userData(self):		
+	def userData(self):
+		accounts = self.w.Win32_UserAccount()
 		if self.database != "":
 			try:
 				db = sqlite3.connect(self.database)
@@ -62,7 +78,7 @@ class WMIConnection:
 			except sqlite3.OperationalError:
 				pass	
 			try:
-				for account in self.w.Win32_UserAccount():
+				for account in accounts:
 					accountData = (ipAddr, self.check(account, "AccountType"), self.check(account, "Caption"), self.check(account, "Description"), self.check(account, "Disabled"), self.check(account, "Domain"), self.check(account, "FullName"), self.check(account, "LocalAccount"), self.check(account, "Lockout"), self.check(account, "Name"), self.check(account, "PasswordChangeable"), self.check(account, "PasswordExpires"), self.check(account, "PasswordRequired"), self.check(account, "SID"), self.check(account, "SIDType"), self.check(account, "Status"))
 					c.execute('INSERT INTO user_data VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', accountData)	
 				db.commit()
@@ -70,11 +86,12 @@ class WMIConnection:
 			except sqlite3.IntegrityError:
 				pass
 		if self.stout:
-			for account in self.w.Win32_UserAccount():
+			for account in accounts:
 				print account
 		return
 
 	def netLogin(self):
+		logins = self.w.Win32_NetworkLoginProfile()
 		if self.database != "":
 			try:
 				db = sqlite3.connect(self.database)
@@ -83,7 +100,7 @@ class WMIConnection:
 			except sqlite3.OperationalError:
 				pass	
 			try:
-				for login in self.w.Win32_NetworkLoginProfile():
+				for login in logins:
 					loginData = (ipAddr, self.check(login, "Caption"), self.check(login, "Description"), self.check(login, "SettingID"), self.check(login, "AccountExpires"), self.check(login, "AuthorizationFlags"), self.check(login, "BadPasswordCount"), self.check(login, "CodePage"), self.check(login, "Comment"), self.check(login, "CountryCode"), self.check(login, "Flags"), self.check(login, "FullName"), self.check(login, "HomeDirectory"), self.check(login, "HomeDirectoryDrive"), self.check(login, "LastLogoff"), self.check(login, "LastLogon"), self.check(login, "LogonHours"), self.check(login, "LogonServer"), self.check(login, "MaximumStorage"), self.check(login, "Name"), self.check(login, "NumberOfLogons"), self.check(login, "Parameters"), self.check(login, "PasswordAge"), self.check(login, "PasswordExpires"), self.check(login, "PrimaryGroupId"), self.check(login, "Privileges"), self.check(login, "Profile"), self.check(login, "ScriptPath"), self.check(login, "UnitsPerWeek"), self.check(login, "UserComment"), self.check(login, "UserId"), self.check(login, "UserType"), self.check(login, "Workstations"))
 					c.execute('INSERT INTO net_login VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', loginData)	
 				db.commit()
@@ -91,11 +108,12 @@ class WMIConnection:
 			except sqlite3.IntegrityError:
 				pass		
 		if self.stout:
-			for login in self.w.Win32_NetworkLoginProfile():
+			for login in logins:
 				print login
 		return
 	
-	def groupData(self):		
+	def groupData(self):
+		groups = self.w.Win32_Group()
 		if self.database != "":
 			db = sqlite3.connect(self.database)
 			c = db.cursor()	
@@ -104,7 +122,7 @@ class WMIConnection:
 			except sqlite3.OperationalError:
 				pass
 			try:
-				for group in self.w.Win32_Group():
+				for group in groups:
 					groupData = (ipAddr, self.check(group, "Caption"), self.check(group, "Description"), self.check(group, "Domain"), self.check(group, "LocalAccount"), self.check(group, "Name"), self.check(group, "SID"), self.check(group, "SIDType"), self.check(group, "Status"))
 					c.execute('INSERT INTO group_data VALUES (?,?,?,?,?,?,?,?,?)', groupData)		
 				db.commit()
@@ -112,11 +130,12 @@ class WMIConnection:
 			except sqlite3.IntegrityError:
 				pass
 		if self.stout:
-			for group in self.w.Win32_Group():
+			for group in groups:
 				print group
 		return	
 
 	def logicalDisks(self):		
+		disks = self.w.Win32_LogicalDisk()
 		if self.database != "":
 			try:
 				db = sqlite3.connect(self.database)
@@ -125,7 +144,7 @@ class WMIConnection:
 			except sqlite3.OperationalError:
 				pass	
 			try:
-				for disk in self.w.Win32_LogicalDisk():
+				for disk in disks:
 					diskData = (ipAddr, self.check(disk, "Access"), self.check(disk, "Availability"), self.check(disk, "BlockSize"), self.check(disk, "Caption"), self.check(disk, "Compressed"), self.check(disk, "ConfigManagerErrorCode"), self.check(disk, "ConfigManagerUserConfig"), self.check(disk, "CreationClassName"), self.check(disk, "Description"), self.check(disk, "DeviceID"), self.check(disk, "DriveType"), self.check(disk, "ErrorCleared"), self.check(disk, "ErrorDescription"), self.check(disk, "ErrorMethodology"), self.check(disk, "FileSystem"), self.check(disk, "FreeSpace"), self.check(disk, "InstallDate"), self.check(disk, "LastErrorCode"), self.check(disk, "MaximumComponentLength"), self.check(disk, "MediaType"), self.check(disk, "Name"), self.check(disk, "NumberOfBlocks"), self.check(disk, "PNPDeviceID"), self.check(disk, "PowerManagementSupported"), self.check(disk, "ProviderName"), self.check(disk, "Purpose"), self.check(disk, "QuotasDisabled"), self.check(disk, "QuotasIncomplete"), self.check(disk, "QuotasRebuilding"), self.check(disk, "Size"), self.check(disk, "Status"), self.check(disk, "StatusInfo"), self.check(disk, "SupportsDiskQuotas"), self.check(disk, "SupportsFileBasedCompression"), self.check(disk, "SystemCreationClassName"), self.check(disk, "SystemName"), self.check(disk, "VolumeDirty"), self.check(disk, "VolumeName"), self.check(disk, "VolumeSerialNumber"))
 					c.execute('INSERT INTO logical_disks VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', diskData)
 				db.commit()
@@ -133,11 +152,12 @@ class WMIConnection:
 			except sqlite3.IntegrityError:
 				pass		
 		if self.stout:
-			for disk in self.w.Win32_LogicalDisk():
+			for disk in disks:
 				print disk
 		return
 		
-	def timeZone(self):		
+	def timeZone(self):
+		zones = self.w.Win32_TimeZone()
 		if self.database != "":
 			try:
 				db = sqlite3.connect(self.database)
@@ -146,7 +166,7 @@ class WMIConnection:
 			except sqlite3.OperationalError:
 				pass	
 			try:
-				for zone in self.w.Win32_TimeZone():
+				for zone in zones:
 					zoneData = (ipAddr, self.check(zone, "Caption"), self.check(zone, "Description"), self.check(zone, "SettingID"), self.check(zone, "Bias"), self.check(zone, "DaylightBias"), self.check(zone, "DaylightDay"), self.check(zone, "DaylightDayOfWeek"), self.check(zone, "DaylightHour"), self.check(zone, "DaylightMillisecond"), self.check(zone, "DaylightMinute"), self.check(zone, "DaylightMonth"), self.check(zone, "DaylightName"), self.check(zone, "DaylightSecond"), self.check(zone, "DaylightYear"), self.check(zone, "StandardBias"), self.check(zone, "StandardDay"), self.check(zone, "StandardDayOfWeek"), self.check(zone, "StandardHour"), self.check(zone, "StandardMillisecond"), self.check(zone, "StandardMinute"), self.check(zone, "StandardMonth"), self.check(zone, "StandardName"), self.check(zone, "StandardSecond"), self.check(zone, "StandardYear"))
 					c.execute('INSERT INTO time_zone VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', zoneData)	
 				db.commit()
@@ -154,11 +174,12 @@ class WMIConnection:
 			except sqlite3.IntegrityError:
 				pass
 		if self.stout:
-			for zone in self.w.Win32_TimeZone():
+			for zone in zones:
 				print zone
 		return
 		
-	def startupPrograms(self):		
+	def startupPrograms(self):
+		programs = self.w.Win32_StartupCommand()
 		if self.database != "":
 			try:
 				db = sqlite3.connect(self.database)
@@ -166,7 +187,7 @@ class WMIConnection:
 				c.execute('''CREATE TABLE startup_programs (ipAddr text, Caption text, Description text, SettingID text, Command text, Location text, Name text, User text, UserSID text, unique (ipAddr, Caption, UserSID))''')
 			except sqlite3.OperationalError:
 				pass
-			for program in self.w.Win32_StartupCommand():
+			for program in programs:
 				try:
 					programData = (ipAddr, self.check(program, "Caption"), self.check(program, "Description"), self.check(program, "SettingID"), self.check(program, "Command"), self.check(program, "Location"), self.check(program, "Name"), self.check(program, "User"), self.check(program, "UserSID"))
 					c.execute('INSERT INTO startup_programs VALUES (?,?,?,?,?,?,?,?,?)', programData)
@@ -175,11 +196,12 @@ class WMIConnection:
 			db.commit()
 			db.close()
 		if self.stout:
-			for program in self.w.Win32_StartupCommand():
+			for program in programs:
 				print program
 		return
 
-	def userProfiles(self):		
+	def userProfiles(self):
+		profiles = self.w.Win32_UserProfile()
 		if self.database != "":
 			try:
 				db = sqlite3.connect(self.database)
@@ -187,7 +209,7 @@ class WMIConnection:
 				c.execute('''CREATE TABLE user_profiles (ipAddr text, SID text, LocalPath text, Loaded text, refCount text, Special text, RoamingConfigured text, RoamingPath text, RoamingPreference text, Status text, LastUseTime text, LastDownloadTime text, LastUploadTime text, HealthStatus text, LastAttemptedProfileDownloadTime text, LastAttemptedProfileUploadTime text, LastBackgroundRegistryUploadTime text, AppDataRoaming text, Desktop text, StartMenu text, Documents text, Pictures text, Music text, Videos text, Favorites text, Contacts text, Downloads text, Links text, Searches text, SavedGames text, unique (ipAddr, SID, LastUseTime))''')
 			except sqlite3.OperationalError:
 				pass
-			for profile in self.w.Win32_UserProfile():
+			for profile in profiles:
 				try:
 					profileData = (ipAddr, self.check(profile, "SID"), self.check(profile, "LocalPath"), self.check(profile, "Loaded"), self.check(profile, "refCount"), self.check(profile, "Special"), self.check(profile, "RoamingConfigured"), self.check(profile, "RoamingPath"), self.check(profile, "RoamingPreference"), self.check(profile, "Status"), self.check(profile, "LastUseTime"), self.check(profile, "LastDownloadTime"), self.check(profile, "LastUploadTime"), self.check(profile, "HealthStatus"), self.check(profile, "LastAttemptedProfileDownloadTime"), self.check(profile, "LastAttemptedProfileUploadTime"), self.check(profile, "LastBackgroundRegistryUploadTime"), self.check(profile, "AppDataRoaming"), self.check(profile, "Desktop"), self.check(profile, "StartMenu"), self.check(profile, "Documents"), self.check(profile, "Pictures"), self.check(profile, "Music"), self.check(profile, "Videos"), self.check(profile, "Favorites"), self.check(profile, "Contacts"), self.check(profile, "Downloads"), self.check(profile, "Links"), self.check(profile, "Searches"), self.check(profile, "SavedGames"))
 					c.execute('INSERT INTO user_profiles VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', profileData)
@@ -196,11 +218,12 @@ class WMIConnection:
 			db.commit()
 			db.close()
 		if self.stout:
-			for profile in self.w.Win32_UserProfile():
+			for profile in profiles:
 				print profile
 		return		
 		
-	def networkAdapters(self):		
+	def networkAdapters(self):
+		adapters = self.w.Win32_NetworkAdapterConfiguration()
 		if self.database != "":
 			try:
 				db = sqlite3.connect(self.database)
@@ -208,7 +231,7 @@ class WMIConnection:
 				c.execute('''CREATE TABLE network_adapters (ipAddr text, Caption text, Description text, SettingID text, ArpAlwaysSourceRoute text, ArpUseEtherSNAP text, DatabasePath text, DeadGWDetectEnabled text, DefaultIPGateway text, DefaultTOS text, DefaultTTL text, DHCPEnabled text, DHCPLeaseExpires text, DHCPLeaseObtained text, DHCPServer text, DNSDomain text, DNSDomainSuffixSearchOrder text, DNSEnabledForWINSResolution text, DNSHostName text, DNSServerSearchOrder text, DomainDNSRegistrationEnabled text, ForwardBufferMemory text, FullDNSRegistrationEnabled text, GatewayCostMetric text, IGMPLevel text, _Index text, InterfaceIndex text, IPAddress text, IPConnectionMetric text, IPEnabled text, IPFilterSecurityEnabled text, IPPortSecurityEnabled text, IPSecPermitIPProtocols text, IPSecPermitTCPPorts text, IPSecPermitUDPPorts text, IPSubnet text, IPUseZeroBroadcast text, IPXAddress text, IPXEnabled text, IPXFrameType text, IPXMediaType text, IPXNetworkNumber text, IPXVirtualNetNumber text, KeepAliveInterval text, KeepAliveTime text, MACAddress text, MTU text, NumForwardPackets text, PMTUBHDetectEnabled text, PMTUDiscoveryEnabled text, ServiceName text, TcpipNetbiosOptions text, TcpMaxConnectRetransmissions text, TcpMaxDataRetransmissions text, TcpNumConnections text, TcpUseRFC1122UrgentPointer text, TcpWindowSize text, WINSEnableLMHostsLookup text, WINSHostLookupFile text, WINSPrimaryServer text, WINSScopeID text, WINSSecondaryServer text, unique (ipAddr, MACAddress))''')
 			except sqlite3.OperationalError:
 				pass
-			for adapter in self.w.Win32_NetworkAdapterConfiguration():
+			for adapter in adapters:
 				try:
 					adapterData = (ipAddr, self.check(adapter, "Caption"), self.check(adapter, "Description"), self.check(adapter, "SettingID"), self.check(adapter, "ArpAlwaysSourceRoute"), self.check(adapter, "ArpUseEtherSNAP"), self.check(adapter, "DatabasePath"), self.check(adapter, "DeadGWDetectEnabled"), self.check(adapter, "DefaultIPGateway"), self.check(adapter, "DefaultTOS"), self.check(adapter, "DefaultTTL"), self.check(adapter, "DHCPEnabled"), self.check(adapter, "DHCPLeaseExpires"), self.check(adapter, "DHCPLeaseObtained"), self.check(adapter, "DHCPServer"), self.check(adapter, "DNSDomain"), self.check(adapter, "DNSDomainSuffixSearchOrder"), self.check(adapter, "DNSEnabledForWINSResolution"), self.check(adapter, "DNSHostName"), self.check(adapter, "DNSServerSearchOrder"), self.check(adapter, "DomainDNSRegistrationEnabled"), self.check(adapter, "ForwardBufferMemory"), self.check(adapter, "FullDNSRegistrationEnabled"), self.check(adapter, "GatewayCostMetric"), self.check(adapter, "IGMPLevel"), self.check(adapter, "Index"), self.check(adapter, "InterfaceIndex"), self.check(adapter, "IPAddress"), self.check(adapter, "IPConnectionMetric"), self.check(adapter, "IPEnabled"), self.check(adapter, "IPFilterSecurityEnabled"), self.check(adapter, "IPPortSecurityEnabled"), self.check(adapter, "IPSecPermitIPProtocols"), self.check(adapter, "IPSecPermitTCPPorts"), self.check(adapter, "IPSecPermitUDPPorts"), self.check(adapter, "IPSubnet"), self.check(adapter, "IPUseZeroBroadcast"), self.check(adapter, "IPXAddress"), self.check(adapter, "IPXEnabled"), self.check(adapter, "IPXFrameType"), self.check(adapter, "IPXMediaType"), self.check(adapter, "IPXNetworkNumber"), self.check(adapter, "IPXVirtualNetNumber"), self.check(adapter, "KeepAliveInterval"), self.check(adapter, "KeepAliveTime"), self.check(adapter, "MACAddress"), self.check(adapter, "MTU"), self.check(adapter, "NumForwardPackets"), self.check(adapter, "PMTUBHDetectEnabled"), self.check(adapter, "PMTUDiscoveryEnabled"), self.check(adapter, "ServiceName"), self.check(adapter, "TcpipNetbiosOptions"), self.check(adapter, "TcpMaxConnectRetransmissions"), self.check(adapter, "TcpMaxDataRetransmissions"), self.check(adapter, "TcpNumConnections"), self.check(adapter, "TcpUseRFC1122UrgentPointer"), self.check(adapter, "TcpWindowSize"), self.check(adapter, "WINSEnableLMHostsLookup"), self.check(adapter, "WINSHostLookupFile"), self.check(adapter, "WINSPrimaryServer"), self.check(adapter, "WINSScopeID"), self.check(adapter, "WINSSecondaryServer"))
 					c.execute('INSERT INTO network_adapters VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', adapterData)
@@ -217,11 +240,12 @@ class WMIConnection:
 			db.commit()
 			db.close()
 		if self.stout:
-			for adapter in self.w.Win32_NetworkAdapterConfiguration():
+			for adapter in adapters:
 				print adapter
 		return
 
-	def processes(self):		
+	def processes(self):
+		processes = self.w.win32_process()
 		if self.database != "":
 			try:
 				db = sqlite3.connect(self.database)
@@ -229,7 +253,7 @@ class WMIConnection:
 				c.execute('''CREATE TABLE processes (ipAddr text, CreationClassName text, Caption text, CommandLine text, CreationDate text, CSCreationClassName text, CSName text, Description text, ExecutablePath text, ExecutionState text, Handle text, HandleCount text, InstallDate text, KernelModeTime text, MaximumWorkingSetSize text, MinimumWorkingSetSize text, Name text, OSCreationClassName text, OSName text, OtherOperationCount text, OtherTransferCount text, PageFaults text, PageFileUsage text, ParentProcessId text, PeakPageFileUsage text, PeakVirtualSize text, PeakWorkingSetSize text, Priority text, PrivatePageCount text, ProcessId text, QuotaNonPagedPoolUsage text, QuotaPagedPoolUsage text, QuotaPeakNonPagedPoolUsage text, QuotaPeakPagedPoolUsage text, ReadOperationCount text, ReadTransferCount text, SessionId text, Status text, TerminationDate text, ThreadCount text, UserModeTime text, VirtualSize text, WindowsVersion text, WorkingSetSize text, WriteOperationCount text, WriteTransferCount text, unique (ipAddr, ProcessId))''')
 			except sqlite3.OperationalError:
 				pass
-			for process in self.w.win32_process():
+			for process in processes:
 				try:
 					processData = (ipAddr, self.check(process, "CreationClassName"), self.check(process, "Caption"), self.check(process, "CommandLine"), self.check(process, "CreationDate"), self.check(process, "CSCreationClassName"), self.check(process, "CSName"), self.check(process, "Description"), self.check(process, "ExecutablePath"), self.check(process, "ExecutionState"), self.check(process, "Handle"), self.check(process, "HandleCount"), self.check(process, "InstallDate"), self.check(process, "KernelModeTime"), self.check(process, "MaximumWorkingSetSize"), self.check(process, "MinimumWorkingSetSize"), self.check(process, "Name"), self.check(process, "OSCreationClassName"), self.check(process, "OSName"), self.check(process, "OtherOperationCount"), self.check(process, "OtherTransferCount"), self.check(process, "PageFaults"), self.check(process, "PageFileUsage"), self.check(process, "ParentProcessId"), self.check(process, "PeakPageFileUsage"), self.check(process, "PeakVirtualSize"), self.check(process, "PeakWorkingSetSize"), self.check(process, "Priority"), self.check(process, "PrivatePageCount"), self.check(process, "ProcessId"), self.check(process, "QuotaNonPagedPoolUsage"), self.check(process, "QuotaPagedPoolUsage"), self.check(process, "QuotaPeakNonPagedPoolUsage"), self.check(process, "QuotaPeakPagedPoolUsage"), self.check(process, "ReadOperationCount"), self.check(process, "ReadTransferCount"), self.check(process, "SessionId"), self.check(process, "Status"), self.check(process, "TerminationDate"), self.check(process, "ThreadCount"), self.check(process, "UserModeTime"), self.check(process, "VirtualSize"), self.check(process, "WindowsVersion"), self.check(process, "WorkingSetSize"), self.check(process, "WriteOperationCount"), self.check(process, "WriteTransferCount"))
 					c.execute('INSERT INTO processes VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', processData)
@@ -238,11 +262,12 @@ class WMIConnection:
 			db.commit()
 			db.close()
 		if self.stout:
-			for process in self.w.win32_process():
+			for process in processes:
 				print process
 		return
 		
-	def services(self):		
+	def services(self):
+		services = self.w.win32_Service()
 		if self.database != "":
 			try:
 				db = sqlite3.connect(self.database)
@@ -251,7 +276,7 @@ class WMIConnection:
 				c.execute('''CREATE TABLE services (ipAddr text, AcceptPause text, AcceptStop text, Caption text, CheckPoint text, CreationClassName text, DelayedAutoStart text, Description text, DesktopInteract text, DisplayName text, ErrorControl text, ExitCode text, InstallDate text, Name text, PathName text, ProcessId text, ServiceSpecificExitCode text, ServiceType text, Started text, StartMode text, StartName text, State text, Status text, SystemCreationClassName text, SystemName text, TagId text, WaitHint text, unique (ipAddr, ProcessId, Caption))''')
 			except sqlite3.OperationalError:
 				pass
-			for service in self.w.win32_Service():
+			for service in services:
 				try:
 					serviceData = (ipAddr, self.check(service, "AcceptPause"), self.check(service, "AcceptStop"), self.check(service, "Caption"), self.check(service, "CheckPoint"), self.check(service, "CreationClassName"), self.check(service, "DelayedAutoStart"), self.check(service, "Description"), self.check(service, "DesktopInteract"), self.check(service, "DisplayName"), self.check(service, "ErrorControl"), self.check(service, "ExitCode"), self.check(service, "InstallDate"), self.check(service, "Name"), self.check(service, "PathName"), self.check(service, "serviceId"), self.check(service, "ServiceSpecificExitCode"), self.check(service, "ServiceType"), self.check(service, "Started"), self.check(service, "StartMode"), self.check(service, "StartName"), self.check(service, "State"), self.check(service, "Status"), self.check(service, "SystemCreationClassName"), self.check(service, "SystemName"), self.check(service, "TagId"), self.check(service, "WaitHint"))
 					c.execute('INSERT INTO services VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', serviceData)
@@ -260,11 +285,12 @@ class WMIConnection:
 			db.commit()
 			db.close()
 		if self.stout:
-			for service in self.w.win32_Service():
+			for service in services:
 				print service
 		return	
 		
-	def shares(self):		
+	def shares(self):
+		remshares = self.w.Win32_Share()
 		if self.database != "":
 			try:
 				db = sqlite3.connect(self.database)
@@ -273,7 +299,7 @@ class WMIConnection:
 				c.execute('''CREATE TABLE shares (ipAddr text, Caption text, Description text, InstallDate text, Status text, AccessMask text, AllowMaximum text, MaximumAllowed text, Name text, Path text, Type text, unique (ipAddr, Path))''')
 			except sqlite3.OperationalError:
 				pass
-			for shares in self.w.Win32_Share():
+			for shares in remshares:
 				try:
 					shareData = (ipAddr, self.check(shares, "Caption"), self.check(shares, "Description"), self.check(shares, "InstallDate"), self.check(shares, "Status"), self.check(shares, "AccessMask"), self.check(shares, "AllowMaximum"), self.check(shares, "MaximumAllowed"), self.check(shares, "Name"), self.check(shares, "Path"), self.check(shares, "Type"))
 					c.execute('INSERT INTO shares VALUES (?,?,?,?,?,?,?,?,?,?,?)', shareData)
@@ -282,6 +308,6 @@ class WMIConnection:
 			db.commit()
 			db.close()
 		if self.stout:
-			for shares in self.w.Win32_Share():
+			for shares in remshares:
 				print shares
 		return
