@@ -311,3 +311,26 @@ class WMIConnection:
 			for shares in remshares:
 				print shares
 		return
+
+	def physicalDisks(self):
+		drives = self.w.Win32_DiskDrive()
+		if self.database != "":
+			try:
+				db = sqlite3.connect(self.database)
+				db.text_factory = str
+				c = db.cursor()
+				c.execute('''CREATE TABLE physical_disks (ipAddr text, Availability text, BytesPerSector text, Capabilities text, CapabilityDescriptions text, Caption text, CompressionMethod text, ConfigManagerErrorCode text, ConfigManagerUserConfig text, CreationClassName text, DefaultBlockSize text, Description text, DeviceID text, ErrorCleared text, ErrorDescription text, ErrorMethodology text, FirmwareRevision text, _Index text, InstallDate text, InterfaceType text, LastErrorCode text, Manufacturer text, MaxBlockSize text, MaxMediaSize text, MediaLoaded text, MediaType text, MinBlockSize text, Model text, Name text, NeedsCleaning text, NumberOfMediaSupported text, Partitions text, PNPDeviceID text, PowerManagementCapabilities text, PowerManagementSupported text, SCSIBus text, SCSILogicalUnit text, SCSIPort text, SCSITargetId text, SectorsPerTrack text, SerialNumber text, Signature text, Size text, Status text, StatusInfo text, SystemCreationClassName text, SystemName text, TotalCylinders text, TotalHeads text, TotalSectors text, TotalTracks text, TracksPerCylinder text, unique (ipAddr, DeviceID))''')
+			except sqlite3.OperationalError:
+				pass
+			for drive in drives:
+				try:
+					diskData = (ipAddr, self.check(drive, "Availability"), self.check(drive, "BytesPerSector"), self.check(drive, "Capabilities"), self.check(drive, "CapabilityDescriptions"), self.check(drive, "Caption"), self.check(drive, "CompressionMethod"), self.check(drive, "ConfigManagerErrorCode"), self.check(drive, "ConfigManagerUserConfig"), self.check(drive, "CreationClassName"), self.check(drive, "DefaultBlockSize"), self.check(drive, "Description"), self.check(drive, "DeviceID"), self.check(drive, "ErrorCleared"), self.check(drive, "ErrorDescription"), self.check(drive, "ErrorMethodology"), self.check(drive, "FirmwareRevision"), self.check(drive, "Index"), self.check(drive, "InstallDate"), self.check(drive, "InterfaceType"), self.check(drive, "LastErrorCode"), self.check(drive, "Manufacturer"), self.check(drive, "MaxBlockSize"), self.check(drive, "MaxMediaSize"), self.check(drive, "MediaLoaded"), self.check(drive, "MediaType"), self.check(drive, "MinBlockSize"), self.check(drive, "Model"), self.check(drive, "Name"), self.check(drive, "NeedsCleaning"), self.check(drive, "NumberOfMediaSupported"), self.check(drive, "Partitions"), self.check(drive, "PNPDeviceID"), self.check(drive, "PowerManagementCapabilities"), self.check(drive, "PowerManagementSupported"), self.check(drive, "SCSIBus"), self.check(drive, "SCSILogicalUnit"), self.check(drive, "SCSIPort"), self.check(drive, "SCSITargetId"), self.check(drive, "SectorsPerTrack"), self.check(drive, "SerialNumber"), self.check(drive, "Signature"), self.check(drive, "Size"), self.check(drive, "Status"), self.check(drive, "StatusInfo"), self.check(drive, "SystemCreationClassName"), self.check(drive, "SystemName"), self.check(drive, "TotalCylinders"), self.check(drive, "TotalHeads"), self.check(drive, "TotalSectors"), self.check(drive, "TotalTracks"), self.check(drive, "TracksPerCylinder"))
+					c.execute('INSERT INTO physical_disks VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', diskData)
+				except sqlite3.IntegrityError:
+					pass
+			db.commit()
+			db.close()
+		if self.stout:
+			for drive in drives:
+				print drive
+		return

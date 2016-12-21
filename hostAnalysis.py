@@ -61,6 +61,9 @@ def runSwitches(connection):
 		elif arg == "-r" or arg == "--shares":
 			connection.shares()
 			i += 1
+		elif arg == "-D" or arg == "--pdisks":
+			connection.physicalDisks()
+			i += 1
 		else:
 			print "Error: unrecognized switch"
 			sys.exit()
@@ -80,7 +83,7 @@ def testWMIQuery():
 	connection.connect()
 	connection.database = database
 	connection.stout = stout
-	for item in connection.w.Win32_ShadowCopy():
+	for item in connection.w.Win32_DiskDrive():
 		print item
 	
 #use this for testing
@@ -108,6 +111,7 @@ if "-h" in sys.argv or "--help" in sys.argv:
 	helpStatement += "\t-P or --process:\tProcesses data\n"
 	helpStatement += "\t-S or --services:\tServices data\n"
 	helpStatement += "\t-r or --shares:\t\tShared Resources data\n"
+	helpStatement += "\t-D or --pdisks:\t\tPhysical Disk data\n"
 	print helpStatement
 	sys.exit()
 
