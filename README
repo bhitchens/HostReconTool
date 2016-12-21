@@ -16,6 +16,7 @@ system. The system data WMI command is run automatically.
 -d or --db:             Provide database name or full path to specify location
 -o or --stout:          Send results to Standard Out
 -i or --remote:         IP Address or CIDR-Notation range of IP Addresses. Exclude for Local Machine
+-A or --all:            Run all switches
 -u or --users:          User account data
 -n or --netlogin:       Network Login data
 -g or --groups:         Group data

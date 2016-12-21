@@ -11,8 +11,10 @@ stout = False
 
 #Process provided switches; passed WMI connection
 def runSwitches(connection):		
-	#if len(sys.argv) == 3:
-		#connection.sysData()	
+	#check for -A/--all
+	if "-A" in sys.argv or "--all" in sys.argv:
+		connection.all()
+		sys.exit()
 	i = 1
 	while i < len(sys.argv):
 		arg = sys.argv[i]
@@ -103,8 +105,9 @@ if "-h" in sys.argv or "--help" in sys.argv:
 	helpStatement += "-d or --db:\t\tProvide database name or full path to specify location\n"
 	helpStatement += "-o or --stout:\t\tSend results to Standard Out\n"
 	helpStatement += "-i or --remote:\t\tIP Address or CIDR-Notation range of IP Addresses. Exclude for Local Machine\n"
+	helpStatement += "-A or --all:\t\tRun all switches\n"
 	helpStatement += "-u or --users:\t\tUser account data\n"
-	helpStatement += "-n or --netlogin:\t\tNetwork Login data\n"
+	helpStatement += "-n or --netlogin:\tNetwork Login data\n"
 	helpStatement += "-g or --groups:\t\tGroup data\n"
 	helpStatement += "-l or --ldisks:\t\tLogical Disk data\n"
 	helpStatement += "-t or --timezone:\tTimezone data\n"

@@ -35,6 +35,22 @@ class WMIConnection:
 			return str(eval("obj." + attrib))
 		except AttributeError:
 			return "NO RESULT"
+			
+	def all(self):
+		self.sysData()
+		self.userData()
+		self.netLogin()
+		self.groupData()
+		self.logicalDisks()
+		self.timeZone()
+		self.startupPrograms()
+		self.userProfiles()
+		self.networkAdapters()
+		self.processes()
+		self.services()
+		self.shares()
+		self.physicalDisks()
+		self.physicalMemory()
 
 	#comments on this method apply to the other WMI methods
 	def sysData(self):
