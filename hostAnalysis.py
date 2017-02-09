@@ -5,6 +5,13 @@ import sys, netaddr, wmiqueries
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
+#Readding computer name PK and u/n p/w
+computerName = ""
+	
+mUser = ""
+mPassword = ""
+#Readding computer name PK and u/n p/w end
+
 remote = ""
 database = ""
 stout = False
@@ -25,6 +32,7 @@ def runSwitches(connection):
 		#automatically run sysData
 		if i == 1:
 			connection.sysData()
+		computerName = connection.getComputerName()
 		#database, standard out, and remote switches have already been processed; skip them
 		if arg == "-d" or arg == "--db" or arg == "-i" or arg == "--remote":
 			i += 2
@@ -105,6 +113,8 @@ if "-h" in sys.argv or "--help" in sys.argv:
 	helpStatement += "-d or --db:\t\tProvide database name or full path to specify location\n"
 	helpStatement += "-o or --stout:\t\tSend results to Standard Out\n"
 	helpStatement += "-i or --remote:\t\tIP Address or CIDR-Notation range of IP Addresses. Exclude for Local Machine\n"
+	helpStatement += "\t-u or --user:\tUser Name for remote system (must be used with -r)\n"
+	helpStatement += "\t-p or --pass:\tPassword for remote system (must be used with -r and -u)\n"
 	helpStatement += "-A or --all:\t\tRun all switches\n"
 	helpStatement += "-u or --users:\t\tUser account data\n"
 	helpStatement += "-n or --netlogin:\tNetwork Login data\n"
@@ -148,6 +158,24 @@ except ValueError:
 			#if neither standard out or a db were provided, it is an error
 			print "Either -d or --db with database name or -o or --stout is required."
 			sys.exit()
+			
+#check for user name
+try:
+	user = sys.argv[sys.argv.index("-u") + 1]
+except ValueError:
+	try:
+		user = sys.argv[sys.argv.index("--user") + 1]
+	except ValueError:
+		user = ""
+		
+#check for password
+try:
+	password = sys.argv[sys.argv.index("-p") + 1]
+except ValueError:
+	try:
+		password = sys.argv[sys.argv.index("--pass") + 1]
+	except ValueError:
+		password = ""
 
 #check for remote IP address switch
 ip = ""		
@@ -164,7 +192,7 @@ if ip != "":
 	try:
 		for ipaddr in IPNetwork(ip):
 			remote = ipaddr
-			connection = wmiqueries.WMIConnection(remote)
+			connection = wmiqueries.WMIConnection(remote, user, password)
 			connection.connect()
 			connection.database = database
 			connection.stout = stout
@@ -174,7 +202,7 @@ if ip != "":
 		sys.exit()
 #no remote IP
 else:
-	connection = wmiqueries.WMIConnection(remote)
+	connection = wmiqueries.WMIConnection(remote, user, password)
 	connection.connect()
 	connection.database = database
 	connection.stout = stout
