@@ -28,17 +28,20 @@ class WMIConnection:
 			self.w = wmi.WMI(self.remote, user=self.user, namespace=mNamespace)
 		elif self.remote != "":
 			self.w = wmi.WMI(self.remote, namespace=mNamespace)
-		self.w = wmi.WMI(namespace=mNamespace)
+		else:
+			self.w = wmi.WMI(namespace=mNamespace)
 
 	#make a WMI connection with the standard namespace
 	def connect(self):
 		if self.password != "":
+			print "aaaaaaaaaaaaaaaaaaaaaaaaaa" + str(self.remote) + self.user + self.password
 			self.w = wmi.WMI(self.remote, user=self.user, password=self.password)
 		elif self.user != "":
 			self.w = wmi.WMI(self.remote, user=self.user)
 		elif self.remote != "":
 			self.w = wmi.WMI(self.remote)
-		self.w = wmi.WMI()
+		else:
+			self.w = wmi.WMI()
 	
 	#use eval to access each attribute under a try/except paradigm	
 	def check(self, obj, attrib):

@@ -32,9 +32,10 @@ def runSwitches(connection):
 		#automatically run sysData
 		if i == 1:
 			connection.sysData()
-		computerName = connection.getComputerName()
+		if database != "":
+			computerName = connection.getComputerName()
 		#database, standard out, and remote switches have already been processed; skip them
-		if arg == "-d" or arg == "--db" or arg == "-i" or arg == "--remote":
+		if arg == "-d" or arg == "--db" or arg == "-i" or arg == "--remote" or arg == "--username" or arg == "--password":
 			i += 2
 		elif arg == "-o" or arg == "--stout":
 			i += 1
@@ -161,21 +162,24 @@ except ValueError:
 			
 #check for user name
 try:
-	user = sys.argv[sys.argv.index("-u") + 1]
-except ValueError:
 	try:
-		user = sys.argv[sys.argv.index("--user") + 1]
+		user = sys.argv[sys.argv.index("--username") + 1] 
+		print user
 	except ValueError:
 		user = ""
-		
+except IndexError:
+	print "Username must be supplied with --username\nAttempting to procede with no username"
+	user = ""
+	
 #check for password
 try:
-	password = sys.argv[sys.argv.index("-p") + 1]
-except ValueError:
 	try:
-		password = sys.argv[sys.argv.index("--pass") + 1]
+		password = sys.argv[sys.argv.index("--password") + 1]
 	except ValueError:
 		password = ""
+except IndexError:
+	print "Password must be supplied with --password\nAttempting to procede with no password"
+	password = ""
 
 #check for remote IP address switch
 ip = ""		
