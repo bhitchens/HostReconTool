@@ -1,5 +1,5 @@
 from netaddr import IPNetwork
-import sys, netaddr, wmiqueries
+import sys, netaddr, wmiqueries, psexecqueries
 
 #these lines allow non-ASCII characters
 reload(sys)
@@ -17,10 +17,11 @@ database = ""
 stout = False
 
 #Process provided switches; passed WMI connection
-def runSwitches(connection):		
+def runSwitches(connection, psexec):		
 	#check for -A/--all
 	if "-A" in sys.argv or "--all" in sys.argv:
 		connection.all()
+		psexec.all()
 		sys.exit()
 	i = 1
 	while i < len(sys.argv):
@@ -31,7 +32,10 @@ def runSwitches(connection):
 			sys.exit()
 		#automatically run sysData
 		if i == 1:
+			print '1'
 			connection.sysData()
+			computerName = connection.getComputerName()
+			print computerName
 		if database != "":
 			computerName = connection.getComputerName()
 		#database, standard out, and remote switches have already been processed; skip them
@@ -77,6 +81,9 @@ def runSwitches(connection):
 			i += 1
 		elif arg == "-m" or arg == "--memory":
 			connection.physicalMemory()
+			i += 1
+		elif arg == "--ports":
+			psexec.netstat()
 			i += 1
 		else:
 			print "Error: unrecognized switch"
@@ -200,7 +207,11 @@ if ip != "":
 			connection.connect()
 			connection.database = database
 			connection.stout = stout
-			runSwitches(connection)
+			psexec = psexecqueries.PSExecQuery(remote, user, password)
+			psexec.database = database
+			psexec.stout = stout
+			psexec.setComputerName()
+			runSwitches(connection, psexec)
 	except netaddr.core.AddrFormatError:
 		print "Invalid network address"
 		sys.exit()
@@ -210,4 +221,8 @@ else:
 	connection.connect()
 	connection.database = database
 	connection.stout = stout
-	runSwitches(connection)
+	psexec = psexecqueries.PSExecQuery(remote, user, password)
+	psexec.database = database
+	psexec.stout = stout
+	psexec.setComputerName()
+	runSwitches(connection, psexec)

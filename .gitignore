@@ -1,2 +1,3 @@
 *.db
 *.txt
+winrmqueries.py
