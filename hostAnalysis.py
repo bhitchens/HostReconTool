@@ -83,7 +83,7 @@ def runSwitches(connection, psexec):
 			connection.physicalMemory()
 			i += 1
 		elif arg == "--ports":
-			psexec.netstat()
+			psexec.ports()
 			i += 1
 		else:
 			print "Error: unrecognized switch"
@@ -137,6 +137,7 @@ if "-h" in sys.argv or "--help" in sys.argv:
 	helpStatement += "-r or --shares:\t\tShared Resources data\n"
 	helpStatement += "-D or --pdisks:\t\tPhysical Disk data\n"
 	helpStatement += "-m or --memory:\t\tPhysical Memory data\n"
+	helpStatement += "--ports:\t\tOpen Ports\n"
 	print helpStatement
 	sys.exit()
 
