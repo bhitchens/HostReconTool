@@ -61,7 +61,7 @@ def runSwitches(connection, psexec):
 		elif arg == "-s" or arg == "--startup":
 			connection.startupPrograms()
 			i += 1
-		elif arg == "-p" or arg == "--profiles":
+		elif arg == "--profiles":
 			connection.userProfiles()
 			i += 1
 		elif arg == "-a" or arg == "--adapters":
@@ -82,7 +82,7 @@ def runSwitches(connection, psexec):
 		elif arg == "-m" or arg == "--memory":
 			connection.physicalMemory()
 			i += 1
-		elif arg == "--ports":
+		elif arg == "-p" or arg == "--ports":
 			psexec.ports()
 			i += 1
 		else:
@@ -130,14 +130,14 @@ if "-h" in sys.argv or "--help" in sys.argv:
 	helpStatement += "-l or --ldisks:\t\tLogical Disk data\n"
 	helpStatement += "-t or --timezone:\tTimezone data\n"
 	helpStatement += "-s or --startup:\tStartup Program data\n"
-	helpStatement += "-p or --profiles:\tUser Profiles data\n"
+	helpStatement += "--profiles:\tUser Profiles data\n"
 	helpStatement += "-a or --adapters:\tNetork Adapter data\n"
 	helpStatement += "-P or --process:\tProcesses data\n"
 	helpStatement += "-S or --services:\tServices data\n"
 	helpStatement += "-r or --shares:\t\tShared Resources data\n"
 	helpStatement += "-D or --pdisks:\t\tPhysical Disk data\n"
 	helpStatement += "-m or --memory:\t\tPhysical Memory data\n"
-	helpStatement += "--ports:\t\tOpen Ports\n"
+	helpStatement += "-p or --ports:\t\tOpen Ports\n"
 	print helpStatement
 	sys.exit()
 
