@@ -79,4 +79,130 @@ class PSExecQuery:
 		if self.stout:
 			while j < len(results):
 				j += 1
+	
+	def patches(self):
+		global computerName
+		results = self.psexec("dir /a /b %SYSTEMROOT%\\kb*")
+		i = 0
+		#TODO: Change Proto
+		while "Proto" not in results[i]:
+			i += 1
+		i += 1
+		j = i
+		if self.database != "":
+			try:
+				db = sqlite3.connect(self.database)
+				c = db.cursor()	
+				#TODO: execution line
+			except sqlite3.OperationalError:
+				pass
+			while i < len(results) - 1:
+			    #TODO: parse data
+			    #TODO: patchesData = ()
+			    try:
+			        #TODO: correct number of ?
+				    c.execute('INSERT INTO patches VALUES ()', patchesData)
+				    except sqlite3.IntegrityError:
+				pass					
+			db.commit()
+			db.close()
+			
+		if self.stout:
+			while j < len(results):
+				j += 1    
+				
+	def route(self):
+		global computerName
+		results = self.psexec("route print")
+		i = 0
+		#TODO: Change Proto
+		while "Proto" not in results[i]:
+			i += 1
+		i += 1
+		j = i
+		if self.database != "":
+			try:
+				db = sqlite3.connect(self.database)
+				c = db.cursor()	
+				#TODO: execution line
+			except sqlite3.OperationalError:
+				pass
+			while i < len(results) - 1:
+			    #TODO: parse data
+			    #TODO: routeData = ()
+			    try:
+			        #TODO: correct number of ?
+				    c.execute('INSERT INTO patches VALUES ()', routeData)
+				    except sqlite3.IntegrityError:
+				pass					
+			db.commit()
+			db.close()
+			
+		if self.stout:
+			while j < len(results):
+				j += 1
+				
+	def arp(self):
+		global computerName
+		results = self.psexec("arp -a")
+		i = 0
+		#TODO: Change Proto
+		while "Proto" not in results[i]:
+			i += 1
+		i += 1
+		j = i
+		#fixed to run normally
+		if self.database != "":
+			try:
+				db = sqlite3.connect(self.database)
+				c = db.cursor()	
+				#TODO: execution line
+			except sqlite3.OperationalError:
+				pass
+			while i < len(results) - 1:
+			    #TODO: parse data
+			    #TODO: arpData = ()
+			    try:
+			        #TODO: correct number of ?
+				    c.execute('INSERT INTO patches VALUES ()', arpData)
+				    except sqlite3.IntegrityError:
+				pass					
+			db.commit()
+			db.close()
+			
+		if self.stout:
+			while j < len(results):
+				j += 1
+				
+	def wireless(self):
+		global computerName
+		results = self.psexec("netsh wlan show profiles")
+		i = 0
+		#TODO: Change Proto
+		while "Proto" not in results[i]:
+			i += 1
+		i += 1
+		j = i
+		#fixed to run normally
+		if self.database != "":
+			try:
+				db = sqlite3.connect(self.database)
+				c = db.cursor()	
+				#TODO: execution line
+			except sqlite3.OperationalError:
+				pass
+			while i < len(results) - 1:
+			    #TODO: parse data
+			    #TODO: wirelessData = ()
+			    try:
+			        #TODO: correct number of ?
+				    c.execute('INSERT INTO patches VALUES ()', wirelessData)
+				    except sqlite3.IntegrityError:
+				pass					
+			db.commit()
+			db.close()
+			
+		if self.stout:
+			while j < len(results):
+				j += 1
 				
