@@ -1,4 +1,5 @@
-import subprocess, sqlite3, sys, math, netaddr, socket
+#removed netaddr, math
+import sqlite3, sys, socket, subprocess
 
 class PSExecQuery:
 
@@ -33,7 +34,7 @@ class PSExecQuery:
 	def all(self):
 		self.netstat()
 	
-	def netstat(self):
+	def ports(self):
 		global computerName
 		results = self.psexec("netstat -anob")
 		i = 0
@@ -41,7 +42,8 @@ class PSExecQuery:
 			i += 1
 		i += 1
 		j = i
-		if self.database != "" or 1==1:
+		#fixed to run normally
+		if self.database != "":# or 1==1:
 			try:
 				db = sqlite3.connect(self.database)
 				c = db.cursor()
