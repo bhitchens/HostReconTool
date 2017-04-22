@@ -393,3 +393,26 @@ class WMIConnection:
 			for mem in memory:
 				print mem
 		return
+		
+	def patches(self):
+		fixes = self.w.Win32_QuickFixEngineering()
+		if self.database != "":
+			try:
+				db = sqlite3.connect(self.database)
+				db.text_factory = str
+				c = db.cursor()
+				c.execute('''CREATE TABLE physical_memory (ComputerName TEXT, ipAddr text, Caption TEXT, Description TEXT, InstallDate TEXT, Name TEXT, Status TEXT, CSName TEXT, FixComments TEXT, HotFixID TEXT, InstalledBy TEXT, InstalledOn TEXT, ServicePackInEffect TEXT, unique (ComputerName, ipAddr, Caption))''')
+			except sqlite3.OperationalError:
+				pass
+			for fix in fixes:
+				try:
+					diskData = (computerName, ipAddr, self.check(fix, "Caption"), self.check(fix, "Description"), self.check(fix, "InstallDate"), self.check(fix, "Name"), self.check(fix, "Status"), self.check(fix, "CSName"), self.check(fix, "FixComments"), self.check(fix, "HotFixID"), self.check(fix, "InstalledBy"), self.check(fix, "InstalledOn"), self.check(fix, "ServicePackInEffect"))
+					c.execute('INSERT INTO physical_memory VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)', diskData)
+				except sqlite3.IntegrityError:
+					pass
+			db.commit()
+			db.close()
+		if self.stout:
+			for fix in fixes:
+				print fix
+		return

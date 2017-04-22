@@ -30,3 +30,4 @@ system. The system data WMI command is run automatically.
 -r or --shares:         Shared Resources data
 -D or --pdisks:         Physical Disk data
 -m or --memory:         Physical Memory data
+-y or --sysinfo:		System Info

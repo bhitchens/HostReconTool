@@ -17,7 +17,12 @@ database = ""
 stout = False
 
 #Process provided switches; passed WMI connection
-def runSwitches(connection, psexec):		
+def runSwitches(connection, psexec, dbcheck):		
+
+	#check new functions
+	psexec.route()
+	sys.exit()
+
 	#check for -A/--all
 	if "-A" in sys.argv or "--all" in sys.argv:
 		connection.all()
@@ -30,18 +35,20 @@ def runSwitches(connection, psexec):
 		if arg[:1] != '-':
 			print "Error: " + arg + " is not a valid parameter. Try \'-h\' or \'--help\' for a list of options."
 			sys.exit()
-		#automatically run sysData
-		if i == 1:
-			print '1'
+		#automatically run sysData if using a database
+		if dbcheck:
 			connection.sysData()
 			computerName = connection.getComputerName()
-			print computerName
+			#print computerName
 		if database != "":
 			computerName = connection.getComputerName()
 		#database, standard out, and remote switches have already been processed; skip them
 		if arg == "-d" or arg == "--db" or arg == "-i" or arg == "--remote" or arg == "--username" or arg == "--password":
 			i += 2
 		elif arg == "-o" or arg == "--stout":
+			i += 1
+		elif (arg == "-y" or arg == "--sysinfo") and not dbcheck:
+			connection.sysData()
 			i += 1
 		elif arg == "-u" or arg == "--users":
 			connection.userData()
@@ -84,6 +91,9 @@ def runSwitches(connection, psexec):
 			i += 1
 		elif arg == "-p" or arg == "--ports":
 			psexec.ports()
+			i += 1
+		elif arg == "--patches":
+			connection.patches()
 			i += 1
 		else:
 			print "Error: unrecognized switch"
@@ -141,13 +151,18 @@ if "-h" in sys.argv or "--help" in sys.argv:
 	print helpStatement
 	sys.exit()
 
+#boolean for supplied database
+dbcheck = False
+	
 #check for -d switch
 try:
 	database = sys.argv[sys.argv.index("-d") + 1]
+	dbcheck = True
 except ValueError:
 	#if it's not there, check for --db
 	try:
 		database = sys.argv[sys.argv.index("--db") + 1]
+		dbcheck = True
 	except ValueError:
 		#if it's not there, hopefully -o/--stout is there
 		pass
@@ -212,7 +227,7 @@ if ip != "":
 			psexec.database = database
 			psexec.stout = stout
 			psexec.setComputerName()
-			runSwitches(connection, psexec)
+			runSwitches(connection, psexec, dbcheck)
 	except netaddr.core.AddrFormatError:
 		print "Invalid network address"
 		sys.exit()
@@ -226,4 +241,4 @@ else:
 	psexec.database = database
 	psexec.stout = stout
 	psexec.setComputerName()
-	runSwitches(connection, psexec)
+	runSwitches(connection, psexec, dbcheck)

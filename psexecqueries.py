@@ -1,5 +1,5 @@
 #removed netaddr, math
-import sqlite3, sys, socket, subprocess
+import sqlite3, sys, socket, subprocess, re
 
 class PSExecQuery:
 
@@ -74,49 +74,18 @@ class PSExecQuery:
 				except sqlite3.IntegrityError:
 					pass					
 			db.commit()
-			db.close()
-			
+			db.close()			
 		if self.stout:
 			while j < len(results):
 				j += 1
 	
-	def patches(self):
-		global computerName
-		results = self.psexec("dir /a /b %SYSTEMROOT%\\kb*")
-		i = 0
-		#TODO: Change Proto
-		while "Proto" not in results[i]:
-			i += 1
-		i += 1
-		j = i
-		if self.database != "":
-			try:
-				db = sqlite3.connect(self.database)
-				c = db.cursor()	
-				#TODO: execution line
-			except sqlite3.OperationalError:
-				pass
-			while i < len(results) - 1:
-			    #TODO: parse data
-			    #TODO: patchesData = ()
-			    try:
-			        #TODO: correct number of ?
-				    c.execute('INSERT INTO patches VALUES ()', patchesData)
-				    except sqlite3.IntegrityError:
-				pass					
-			db.commit()
-			db.close()
-			
-		if self.stout:
-			while j < len(results):
-				j += 1    
 				
 	def route(self):
 		global computerName
 		results = self.psexec("route print")
 		i = 0
 		#TODO: Change Proto
-		while "Proto" not in results[i]:
+		while "Interface List" not in results[i]:
 			i += 1
 		i += 1
 		j = i
@@ -124,25 +93,96 @@ class PSExecQuery:
 			try:
 				db = sqlite3.connect(self.database)
 				c = db.cursor()	
-				#TODO: execution line
+				c.execute('''CREATE TABLE interface_list (ComputerName TEXT, ipAddr text, Interface text, MAC text, Label text, unique (ComputerName, ipAddr, Interface))''')
 			except sqlite3.OperationalError:
 				pass
-			while i < len(results) - 1:
-			    #TODO: parse data
-			    #TODO: routeData = ()
-			    try:
-			        #TODO: correct number of ?
-				    c.execute('INSERT INTO patches VALUES ()', routeData)
-				    except sqlite3.IntegrityError:
-				pass					
+			while "===" not in results[i]:
+				resultsList = re.sub('\.\.+', ';;', results[i]).split(";;")
+				#print resultsList
+				if len(resultsList) == 3:
+					interfaceData = (computerName, ipAddr, resultsList[0], resultsList[1], resultsList[2])
+				else:
+					interfaceData = (computerName, ipAddr, resultsList[0], "", resultsList[1])
+				try:
+					c.execute('INSERT INTO interface_list VALUES (?,?,?,?,?)', interfaceData)
+				except sqlite3.IntegrityError:
+					pass
+				i += 1
+				db.commit()
+			while "Active Routes" not in results[i]:
+				i += 1
+			i += 2
+			try:
+				db = sqlite3.connect(self.database)
+				c = db.cursor()	
+				c.execute('''CREATE TABLE v4_route_list (ComputerName TEXT, ipAddr text, RouteType TEXT, NetworkDestination text, Netmask text, Gateway text, Interface text, Metric text, unique (ComputerName, ipAddr, NetworkDestination, Interface, Metric))''')
+			except sqlite3.OperationalError:
+				pass
+			while "===" not in results[i]:
+				resultsList = results[i].split()
+				routeData = (computerName, ipAddr, "Active", resultsList[0], resultsList[1], resultsList[2], resultsList[3], resultsList[4])
+				try:
+					c.execute('INSERT INTO v4_route_list VALUES (?,?,?,?,?,?,?,?)', routeData)
+				except sqlite3.IntegrityError:
+					pass
+				i += 1
+			db.commit()
+			i += 2
+			if "None" not in results[i]:
+				i += 1
+				while "===" not in results[i]:
+					resultsList = results[i].split()
+					routeData = (computerName, ipAddr, "Persistent", resultsList[0], resultsList[1], resultsList[2], "", resultsList[3])
+					try:
+						c.execute('INSERT INTO v4_route_list VALUES (?,?,?,?,?,?,?,?)', routeData)
+					except sqlite3.IntegrityError:
+						pass
+					i += 1
+				db.commit()
+				i += 1
+			while "===" not in results[i]:
+				i += 1
+			i += 3
+			try:
+				db = sqlite3.connect(self.database)
+				c = db.cursor()	
+				c.execute('''CREATE TABLE v6_route_list (ComputerName TEXT, ipAddr text, RouteType TEXT, Interface text, Metric text, NetworkDestination text, Gateway text, unique (ComputerName, ipAddr, NetworkDestination, Interface, Metric))''')
+			except sqlite3.OperationalError:
+				pass
+			while "===" not in results[i]:
+				resultsList = results[i].split()
+				if len(resultsList) < 4:
+					i += 1
+					resultsList += results[i].strip().split()
+				routeData = (computerName, ipAddr, "Active", resultsList[0], resultsList[1], resultsList[2], resultsList[3])
+				try:
+					c.execute('INSERT INTO v6_route_list VALUES (?,?,?,?,?,?,?)', routeData)
+				except sqlite3.IntegrityError:
+					pass
+				i += 1
+			db.commit()
+			i += 2
+			if "None" not in results[i]:
+				i += 1
+				while "===" not in results[i]:
+					print results[i]
+					resultsList = results[i].split()
+					if len(resultsList) < 4:
+						i += 1
+						resultsList += results[i].strip().split()
+					routeData = (computerName, ipAddr, "Persistent", resultsList[0], resultsList[1], resultsList[2], resultsList[3])
+					try:
+						c.execute('INSERT INTO v6_route_list VALUES (?,?,?,?,?,?,?)', routeData)
+					except sqlite3.IntegrityError:
+						pass
+					i += 1
 			db.commit()
 			db.close()
-			
 		if self.stout:
 			while j < len(results):
 				j += 1
 				
-	def arp(self):
+	'''def arp(self):
 		global computerName
 		results = self.psexec("arp -a")
 		i = 0
@@ -204,5 +244,5 @@ class PSExecQuery:
 			
 		if self.stout:
 			while j < len(results):
-				j += 1
+				j += 1'''
 				
