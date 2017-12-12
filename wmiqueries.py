@@ -34,7 +34,6 @@ class WMIConnection:
 	#make a WMI connection with the standard namespace
 	def connect(self):
 		if self.password != "":
-			#print "aaaaaaaaaaaaaaaaaaaaaaaaaa" + str(self.remote) + self.user + self.password
 			self.w = wmi.WMI(self.remote, user=self.user, password=self.password)
 		elif self.user != "":
 			self.w = wmi.WMI(self.remote, user=self.user)

@@ -31,7 +31,7 @@ def runSwitches(connection, psexec, dbcheck):
 	i = 1
 	while i < len(sys.argv):
 		arg = sys.argv[i]
-		print arg
+		#print arg
 		#error if there is an improperly formatted switch
 		if arg[:1] != '-':
 			print "Error: " + arg + " is not a valid parameter. Try \'-h\' or \'--help\' for a list of options."
@@ -96,6 +96,12 @@ def runSwitches(connection, psexec, dbcheck):
 		elif arg == "--patches":
 			connection.patches()
 			i += 1
+		elif arg == "--arp":
+			psexec.arp()
+			i += 1
+		elif arg == "-w" or arg == "--wireless":
+			psexec.wireless()
+			i += 1
 		else:
 			print "Error: unrecognized switch"
 			sys.exit()
@@ -118,9 +124,18 @@ def testWMIQuery():
 	for item in connection.w.Win32_PhysicalMemory():
 		print item
 	
+def testPsexQuery():
+	user = ""
+	password = ""
+	psexec = psexecqueries.PSExecQuery(remote, user, password)
+	psexec.database = database
+	psexec.stout = stout
+	psexec.setComputerName()
+	psexec.arp()
 #use this for testing
-'''testWMIQuery()
-sys.exit()'''
+#testWMIQuery()
+#testPsexQuery()
+#sys.exit()
 
 	
 #Actual start is here
@@ -132,8 +147,8 @@ if "-h" in sys.argv or "--help" in sys.argv:
 	helpStatement += "-d or --db:\t\tProvide database name or full path to specify location\n"
 	helpStatement += "-o or --stout:\t\tSend results to Standard Out\n"
 	helpStatement += "-i or --remote:\t\tIP Address or CIDR-Notation range of IP Addresses. Exclude for Local Machine\n"
-	helpStatement += "\t-u or --user:\tUser Name for remote system (must be used with -r)\n"
-	helpStatement += "\t-p or --pass:\tPassword for remote system (must be used with -r and -u)\n"
+	helpStatement += "-u or --user:\t\tUser Name for remote system (must be used with -r)\n"
+	helpStatement += "-p or --pass:\t\tPassword for remote system (must be used with -r and -u)\n"
 	helpStatement += "-A or --all:\t\tRun all switches\n"
 	helpStatement += "-u or --users:\t\tUser account data\n"
 	helpStatement += "-n or --netlogin:\tNetwork Login data\n"
@@ -141,7 +156,7 @@ if "-h" in sys.argv or "--help" in sys.argv:
 	helpStatement += "-l or --ldisks:\t\tLogical Disk data\n"
 	helpStatement += "-t or --timezone:\tTimezone data\n"
 	helpStatement += "-s or --startup:\tStartup Program data\n"
-	helpStatement += "--profiles:\tUser Profiles data\n"
+	helpStatement += "      --profiles:\tUser Profiles data\n"
 	helpStatement += "-a or --adapters:\tNetork Adapter data\n"
 	helpStatement += "-P or --process:\tProcesses data\n"
 	helpStatement += "-S or --services:\tServices data\n"
@@ -149,6 +164,8 @@ if "-h" in sys.argv or "--help" in sys.argv:
 	helpStatement += "-D or --pdisks:\t\tPhysical Disk data\n"
 	helpStatement += "-m or --memory:\t\tPhysical Memory data\n"
 	helpStatement += "-p or --ports:\t\tOpen Ports\n"
+	helpStatement += "      --patches:\tCurrently Applied Patches\n"
+	helpStatement += "      --arp:\t\tArp Table Data"
 	print helpStatement
 	sys.exit()
 
@@ -188,7 +205,7 @@ except ValueError:
 try:
 	try:
 		user = sys.argv[sys.argv.index("--username") + 1] 
-		print user
+		#print user
 	except ValueError:
 		user = ""
 except IndexError:
@@ -232,6 +249,7 @@ if ip != "":
 	except netaddr.core.AddrFormatError:
 		print "Invalid network address"
 		sys.exit()
+		
 #no remote IP
 else:
 	connection = wmiqueries.WMIConnection(remote, user, password)

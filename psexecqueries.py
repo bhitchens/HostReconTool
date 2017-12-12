@@ -1,5 +1,5 @@
 #removed netaddr, math
-import sqlite3, sys, socket, subprocess, re
+import sqlite3, sys, socket, subprocess, re, os
 
 class PSExecQuery:
 
@@ -24,18 +24,18 @@ class PSExecQuery:
 	def setComputerName(self):
 		global computerName
 		computerName = self.psexec("hostname")[-2]
-		print computerName
 
 	def psexec(self, command):
 		list = ["psexec.exe", "-AcceptEULA", "\\\\" + ipAddr] + command.split(" ")
-		#print list
-		proc = subprocess.Popen(list, stdout=subprocess.PIPE)#, stderr=subprocess.STDOUT)
+		FNULL = open(os.devnull, 'w')
+		proc = subprocess.Popen(list, stdout=subprocess.PIPE, stderr=FNULL)
+		FNULL.close()
 		return proc.stdout.read().split('\n')
 		
 	def all(self):
-		#self.netstat()
 		self.ports()
 		self.route()
+		self.arp()
 	
 	def ports(self):
 		global computerName
@@ -62,11 +62,13 @@ class PSExecQuery:
 				localIP = ""						
 				foreign = splitLine[2].replace("::",";;").split(':')
 				i += 1
-				owner = results[i].strip()
-				i += 1
-				if results[i].split()[0][0] == '[':
-					owner += ' ' + results[i].strip()
+				owner = ""
+				if "TIME_WAIT" not in results[i-1]:
+					owner = results[i].strip()
 					i += 1
+					if results[i].split()[0][0] == '[':
+						owner += ' ' + results[i].strip()
+						i += 1
 				#print splitLine
 				if splitLine[0] == "TCP":
 					portsData = (computerName, ipAddr, splitLine[0], local[0].replace(";;", "::"), local[1], foreign[0].replace(";;", "::"), foreign[1], splitLine[3], splitLine[4], owner)
@@ -185,67 +187,83 @@ class PSExecQuery:
 			while j < len(results):
 				j += 1
 				
-	'''def arp(self):
+	def arp(self):
 		global computerName
 		results = self.psexec("arp -a")
 		i = 0
-		#TODO: Change Proto
-		while "Proto" not in results[i]:
-			i += 1
-		i += 1
-		j = i
-		#fixed to run normally
+		
+		interface = ""
+		interfaceNum = ""
+		
+		header = True
+		
 		if self.database != "":
 			try:
 				db = sqlite3.connect(self.database)
-				c = db.cursor()	
-				#TODO: execution line
+				c = db.cursor()
+				c.execute('''CREATE TABLE arp_data (ComputerName TEXT, ipAddr text, InterfaceAddr text, InterfaceNum text, Address text, MAC text, Type text, unique (ComputerName, ipAddr, InterfaceAddr, Address))''')
 			except sqlite3.OperationalError:
 				pass
-			while i < len(results) - 1:
-			    #TODO: parse data
-			    #TODO: arpData = ()
-			    try:
-			        #TODO: correct number of ?
-				    c.execute('INSERT INTO patches VALUES ()', arpData)
-				    except sqlite3.IntegrityError:
-				pass					
+				
+		for line in results:
+			if "Interface" in line:
+				interface = line.split()[1]
+				interfaceNum = line.split()[3]
+				header = False
+				continue
+			if header:
+				continue
+			if "Internet" not in line and len(line) > 4:
+				if self.database != "":
+					splitLine = line.split()
+					arpData = (computerName, ipAddr, interface, interfaceNum, splitLine[0], splitLine[1], splitLine[2])
+					try:
+						c.execute('INSERT INTO arp_data VALUES (?,?,?,?,?,?,?)', arpData)
+					except sqlite3.IntegrityError:
+						pass
+				if self.stout:
+					print interface + ' ' + interfaceNum + ' ' + line
+				 
+		if self.database != "":
 			db.commit()
 			db.close()
-			
-		if self.stout:
-			while j < len(results):
-				j += 1
 				
 	def wireless(self):
 		global computerName
 		results = self.psexec("netsh wlan show profiles")
 		i = 0
 		#TODO: Change Proto
-		while "Proto" not in results[i]:
-			i += 1
-		i += 1
-		j = i
-		#fixed to run normally
+		header = True
+		dash = True
+		
 		if self.database != "":
 			try:
 				db = sqlite3.connect(self.database)
-				c = db.cursor()	
-				#TODO: execution line
+				c = db.cursor()
+				c.execute('''CREATE TABLE wireless_profiles (ComputerName TEXT, ipAddr text, Type text, Name text, unique (ComputerName, ipAddr, Type, Name))''')
 			except sqlite3.OperationalError:
 				pass
-			while i < len(results) - 1:
-			    #TODO: parse data
-			    #TODO: wirelessData = ()
-			    try:
-			        #TODO: correct number of ?
-				    c.execute('INSERT INTO patches VALUES ()', wirelessData)
-				    except sqlite3.IntegrityError:
-				pass					
+		
+		for line in results:
+			if "User profiles" in line:
+				header=False
+				continue
+			if "----" in line:
+				dash = False
+				continue
+			if header or dash or len(line)<3:
+				continue
+			if self.database != "":
+				splitLine = line.strip().split(':')
+				wirelessData = (computerName, ipAddr, splitLine[0].strip(), splitLine[1].strip())
+				try:
+					c.execute('INSERT INTO wireless_profiles VALUES (?,?,?,?)', wirelessData)
+				except sqlite3.IntegrityError:
+					pass
+				if self.stout:
+					print line
+		if self.database != "":
 			db.commit()
 			db.close()
-			
-		if self.stout:
-			while j < len(results):
-				j += 1'''
+
 				
