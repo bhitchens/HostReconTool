@@ -24,6 +24,7 @@ class PSExecQuery:
 	def setComputerName(self):
 		global computerName
 		computerName = self.psexec("hostname")[-2]
+		print computerName
 
 	def psexec(self, command):
 		list = ["psexec.exe", "-AcceptEULA", "\\\\" + ipAddr] + command.split(" ")
@@ -32,7 +33,9 @@ class PSExecQuery:
 		return proc.stdout.read().split('\n')
 		
 	def all(self):
-		self.netstat()
+		#self.netstat()
+		self.ports()
+		self.route()
 	
 	def ports(self):
 		global computerName

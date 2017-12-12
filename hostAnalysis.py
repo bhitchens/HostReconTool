@@ -20,8 +20,8 @@ stout = False
 def runSwitches(connection, psexec, dbcheck):		
 
 	#check new functions
-	psexec.route()
-	sys.exit()
+	#psexec.route()
+	#sys.exit()
 
 	#check for -A/--all
 	if "-A" in sys.argv or "--all" in sys.argv:
@@ -31,6 +31,7 @@ def runSwitches(connection, psexec, dbcheck):
 	i = 1
 	while i < len(sys.argv):
 		arg = sys.argv[i]
+		print arg
 		#error if there is an improperly formatted switch
 		if arg[:1] != '-':
 			print "Error: " + arg + " is not a valid parameter. Try \'-h\' or \'--help\' for a list of options."
