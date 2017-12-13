@@ -16,7 +16,7 @@ class PSExecQuery:
 		global ipAddr
 		#if a remote IP has been provided, set the ipAddr global to that IP
 		if remote != "":
-			ipAddr = remote
+			ipAddr = str(remote)
 		#else set it to the local system's IP
 		else:
 			ipAddr = socket.gethostbyname(socket.gethostname())
@@ -24,12 +24,25 @@ class PSExecQuery:
 	def setComputerName(self):
 		global computerName
 		computerName = self.psexec("hostname")[-2]
+		print "Computer Name: " + computerName
 
 	def psexec(self, command):
-		list = ["psexec.exe", "-AcceptEULA", "\\\\" + ipAddr] + command.split(" ")
+		#TODO: should receive stderr and check for success/failure
+		FNULL = open(os.devnull, 'w')
+		if self.password != "":
+			list = ["psexec.exe", "-AcceptEULA", "\\\\" + str(ipAddr), "-h", "-u", self.user, "-p", self.password] + command.split(" ")
+			proc = subprocess.Popen(list, stdout=subprocess.PIPE, stderr=FNULL)
+			FNULL.close()
+			return proc.stdout.read().split('\n')
+		elif self.user != "":
+			list = ["psexec.exe", "-AcceptEULA", "\\\\" + str(ipAddr), "-h", "-u", self.user] + command.split(" ")
+			proc = subprocess.Popen(list, stdout=subprocess.PIPE, stderr=FNULL)
+			FNULL.close()
+			return proc.stdout.read().split('\n')
+		list = ["psexec.exe", "-AcceptEULA", "-h", "\\\\" + str(ipAddr), "-h"] + command.split(" ")
 		FNULL = open(os.devnull, 'w')
 		proc = subprocess.Popen(list, stdout=subprocess.PIPE, stderr=FNULL)
-		FNULL.close()
+		FNULL.close()		
 		return proc.stdout.read().split('\n')
 		
 	def all(self):
@@ -55,9 +68,7 @@ class PSExecQuery:
 				pass	
 			#try:
 			while i < len(results) - 1:
-				#print results[i]
 				splitLine = results[i].split()
-				#print splitLine
 				local = splitLine[1].replace("::", ";;").split(':')
 				localIP = ""						
 				foreign = splitLine[2].replace("::",";;").split(':')
@@ -69,7 +80,6 @@ class PSExecQuery:
 					if results[i].split()[0][0] == '[':
 						owner += ' ' + results[i].strip()
 						i += 1
-				#print splitLine
 				if splitLine[0] == "TCP":
 					portsData = (computerName, ipAddr, splitLine[0], local[0].replace(";;", "::"), local[1], foreign[0].replace(";;", "::"), foreign[1], splitLine[3], splitLine[4], owner)
 				else:
@@ -103,7 +113,6 @@ class PSExecQuery:
 				pass
 			while "===" not in results[i]:
 				resultsList = re.sub('\.\.+', ';;', results[i]).split(";;")
-				#print resultsList
 				if len(resultsList) == 3:
 					interfaceData = (computerName, ipAddr, resultsList[0], resultsList[1], resultsList[2])
 				else:
@@ -232,7 +241,6 @@ class PSExecQuery:
 		global computerName
 		results = self.psexec("netsh wlan show profiles")
 		i = 0
-		#TODO: Change Proto
 		header = True
 		dash = True
 		

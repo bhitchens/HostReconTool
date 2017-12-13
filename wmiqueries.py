@@ -15,7 +15,7 @@ class WMIConnection:
 		global ipAddr
 		#if a remote IP has been provided, set the ipAddr global to that IP
 		if remote != "":
-			ipAddr = remote
+			ipAddr = str(remote)
 		#else set it to the local system's IP
 		else:
 			ipAddr = socket.gethostbyname(socket.gethostname())
@@ -91,7 +91,7 @@ class WMIConnection:
 				#put the data in a string array, using the check method to process the attributes
 				systemData = (ipAddr, self.check(sys, "AdminPasswordStatus"), self.check(sys, "AutomaticManagedPagefile"), self.check(sys, "AutomaticResetBootOption"), self.check(sys, "AutomaticResetCapability"), self.check(sys, "BootROMSupported"), self.check(sys, "BootStatus"), self.check(sys, "BootupState"), self.check(sys, "Caption"), self.check(sys, "ChassisBootupState"), self.check(sys, "ChassisSKUNumber"), self.check(sys, "CreationClassName"), self.check(sys, "CurrentTimeZone"), self.check(sys, "Description"), self.check(sys, "DNSHostName"), self.check(sys, "Domain"), self.check(sys, "DomainRole"), self.check(sys, "EnableDaylightSavingsTime"), self.check(sys, "FrontPanelResetStatus"), self.check(sys, "HypervisorPresent"), self.check(sys, "InfraredSupported"), self.check(sys, "KeyboardPasswordStatus"), self.check(sys, "Manufacturer"), self.check(sys, "Model"), self.check(sys, "Name"), self.check(sys, "NetworkServerModeEnabled"), self.check(sys, "NumberOfLogicalProcessors"), self.check(sys, "NumberOfProcessors"), self.check(sys, "OEMArray"), self.check(sys, "PartOfDomain"), self.check(sys, "PauseAfterReset"), self.check(sys, "PCSystemType"), self.check(sys, "PCSystemTypeEx"), self.check(sys, "PowerOnPasswordStatus"), self.check(sys, "PowerState"), self.check(sys, "PowerSupplyState"), self.check(sys, "PrimaryOwnerName"), self.check(sys, "ResetCapability"), self.check(sys, "ResetCount"), self.check(sys, "ResetLimit"), self.check(sys, "Roles"), self.check(sys, "Status"), self.check(sys, "SystemFamily"), self.check(sys, "SystemSKUNumber"), self.check(sys, "SystemType"), self.check(sys, "ThermalState"), self.check(sys, "TotalPhysicalMemory"), self.check(sys, "UserName"), self.check(sys, "WakeUpType"), self.check(sys, "Workgroup"))
 				#insert the values into the table
-				c.execute('INSERT INTO sys_data VALUES (?, ?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', systemData)	
+				c.execute('INSERT INTO sys_data VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', systemData)	
 				#commit the db change
 				db.commit()
 				#close the db

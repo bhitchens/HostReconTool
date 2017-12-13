@@ -31,7 +31,6 @@ def runSwitches(connection, psexec, dbcheck):
 	i = 1
 	while i < len(sys.argv):
 		arg = sys.argv[i]
-		#print arg
 		#error if there is an improperly formatted switch
 		if arg[:1] != '-':
 			print "Error: " + arg + " is not a valid parameter. Try \'-h\' or \'--help\' for a list of options."
@@ -40,7 +39,6 @@ def runSwitches(connection, psexec, dbcheck):
 		if dbcheck:
 			connection.sysData()
 			computerName = connection.getComputerName()
-			#print computerName
 		if database != "":
 			computerName = connection.getComputerName()
 		#database, standard out, and remote switches have already been processed; skip them
@@ -50,6 +48,9 @@ def runSwitches(connection, psexec, dbcheck):
 			i += 1
 		elif (arg == "-y" or arg == "--sysinfo") and not dbcheck:
 			connection.sysData()
+			i += 1
+		#if we're using a database, -y is redundant, skip it
+		elif (arg == "-y" or arg == "--sysinfo"):
 			i += 1
 		elif arg == "-u" or arg == "--users":
 			connection.userData()
@@ -102,8 +103,11 @@ def runSwitches(connection, psexec, dbcheck):
 		elif arg == "-w" or arg == "--wireless":
 			psexec.wireless()
 			i += 1
+		elif arg == "--routes":
+			psexec.route()
+			i += 1
 		else:
-			print "Error: unrecognized switch"
+			print "Error: unrecognized switch " + arg
 			sys.exit()
 	return
 	
@@ -166,6 +170,7 @@ if "-h" in sys.argv or "--help" in sys.argv:
 	helpStatement += "-p or --ports:\t\tOpen Ports\n"
 	helpStatement += "      --patches:\tCurrently Applied Patches\n"
 	helpStatement += "      --arp:\t\tArp Table Data"
+	helpStatement += "      --routes:\t\tRouting Table Data"
 	print helpStatement
 	sys.exit()
 
@@ -205,7 +210,6 @@ except ValueError:
 try:
 	try:
 		user = sys.argv[sys.argv.index("--username") + 1] 
-		#print user
 	except ValueError:
 		user = ""
 except IndexError:
@@ -244,6 +248,7 @@ if ip != "":
 			psexec = psexecqueries.PSExecQuery(remote, user, password)
 			psexec.database = database
 			psexec.stout = stout
+			#psexec.arp()
 			psexec.setComputerName()
 			runSwitches(connection, psexec, dbcheck)
 	except netaddr.core.AddrFormatError:
@@ -260,4 +265,5 @@ else:
 	psexec.database = database
 	psexec.stout = stout
 	psexec.setComputerName()
+	#psexec.arp()
 	runSwitches(connection, psexec, dbcheck)
