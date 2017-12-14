@@ -24,7 +24,6 @@ class PSExecQuery:
 	def setComputerName(self):
 		global computerName
 		computerName = self.psexec("hostname")[-2]
-		print "Computer Name: " + computerName
 
 	def psexec(self, command):
 		#TODO: should receive stderr and check for success/failure

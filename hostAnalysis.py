@@ -39,6 +39,8 @@ def runSwitches(connection, psexec, dbcheck):
 		if dbcheck:
 			connection.sysData()
 			computerName = connection.getComputerName()
+		connection.drivers()
+		sys.exit()
 		#if database != "":
 			#computerName = connection.getComputerName()
 		#database, standard out, and remote switches have already been processed; skip them
@@ -109,6 +111,9 @@ def runSwitches(connection, psexec, dbcheck):
 		elif arg == "-b" or arg == "--bios":
 			connection.bios()
 			i += 1
+		elif arg == "--pnp":
+			connection.pnp()
+			i += 1
 		else:
 			print "Error: unrecognized switch " + arg
 			sys.exit()
@@ -128,7 +133,7 @@ def testWMIQuery():
 	connection.connect()
 	connection.database = database
 	connection.stout = stout
-	for item in connection.w.Win32_LogonSessionMappedDisk ():
+	for item in connection.w.Win32_DriverVXD ():
 		print item
 	
 def testPsexQuery():

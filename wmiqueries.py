@@ -69,6 +69,7 @@ class WMIConnection:
 		self.physicalMemory()
 		self.patches()
 		self.bios()
+		self.pnp()
 
 	#comments on this method apply to the other WMI methods
 	def sysData(self):
@@ -418,6 +419,7 @@ class WMIConnection:
 				print fix
 		return
 		
+		
 	def bios(self):
 		bios = self.w.Win32_BIOS()
 		if self.database != "":
@@ -440,3 +442,53 @@ class WMIConnection:
 			for b in bios:
 				print b
 		return
+		
+	def pnp(self):
+		pnp = self.w.Win32_PNPEntity()
+		if self.database != "":
+			try:
+				db = sqlite3.connect(self.database)
+				db.text_factory = str
+				c = db.cursor()
+				c.execute('''CREATE TABLE plugnplay (ComputerName TEXT, ipAddr text, Availability text, Caption text, ClassGuid text, CompatibleID text, ConfigManagerErrorCode text, ConfigManagerUserConfig text, CreationClassName text, Description text, DeviceID text, ErrorCleared text, ErrorDescription text, HardwareID text, InstallDate text, LastErrorCode text, Manufacturer text, Name text, PNPClass text, PNPDeviceID text, PowerManagementCapabilities text, PowerManagementSupported text, Present text, Service text, Status text, StatusInfo text, SystemCreationClassName text, SystemName text, unique (ComputerName, ipAddr, ClassGuid))''')
+			except sqlite3.OperationalError:
+				pass
+			for plug in pnp:
+				try:
+					pnpData = (computerName, ipAddr, self.check(plug, "Availability"), self.check(plug, "Caption"), self.check(plug, "ClassGuid"), self.check(plug, "CompatibleID"), self.check(plug, "ConfigManagerErrorCode"), self.check(plug, "ConfigManagerUserConfig"), self.check(plug, "CreationClassName"), self.check(plug, "Description"), self.check(plug, "DeviceID"), self.check(plug, "ErrorCleared"), self.check(plug, "ErrorDescription"), self.check(plug, "HardwareID"), self.check(plug, "InstallDate"), self.check(plug, "LastErrorCode"), self.check(plug, "Manufacturer"), self.check(plug, "Name"), self.check(plug, "PNPClass"), self.check(plug, "PNPDeviceID"), self.check(plug, "PowerManagementCapabilities"), self.check(plug, "PowerManagementSupported"), self.check(plug, "Present"), self.check(plug, "Service"), self.check(plug, "Status"), self.check(plug, "StatusInfo"), self.check(plug, "SystemCreationClassName"), self.check(plug, "SystemName"))
+					c.execute('INSERT INTO plugnplay VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', pnpData)
+				except sqlite3.IntegrityError:
+					pass
+			db.commit()
+			db.close()
+		if self.stout:
+			for plug in pnp:
+				print plug
+		return
+		
+	def drivers(self):
+		try:
+			drivers = self.w.Win32_SystemDriver()
+			if self.database != "":
+				try:
+					db = sqlite3.connect(self.database)
+					db.text_factory = str
+					c = db.cursor()
+					c.execute('''CREATE TABLE system_drivers (ComputerName TEXT, ipAddr text, AcceptPause text, AcceptStop text, Caption text, CreationClassName text, Description text, DesktopInteract text, DisplayName text, ErrorControl text, ExitCode text, InstallDate text, Name text, PathName text, ServiceSpecificExitCode text, ServiceType text, Started text, StartMode text, StartName text, State text, Status text, SystemCreationClassName text, SystemName text, TagId text, unique (ComputerName, ipAddr, PathName))''')
+				except sqlite3.OperationalError:
+					pass
+				for driver in drivers:
+					try:
+						driverData = (computerName, ipAddr, self.check(driver, "AcceptPause"), self.check(driver, "AcceptStop"), self.check(driver, "Caption"), self.check(driver, "CreationClassName"), self.check(driver, "Description"), self.check(driver, "DesktopInteract"), self.check(driver, "DisplayName"), self.check(driver, "ErrorControl"), self.check(driver, "ExitCode"), self.check(driver, "InstallDate"), self.check(driver, "Name"), self.check(driver, "PathName"), self.check(driver, "ServiceSpecificExitCode"), self.check(driver, "ServiceType"), self.check(driver, "Started"), self.check(driver, "StartMode"), self.check(driver, "StartName"), self.check(driver, "State"), self.check(driver, "Status"), self.check(driver, "SystemCreationClassName"), self.check(driver, "SystemName"), self.check(driver, "TagId"))
+						c.execute('INSERT INTO system_drivers VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', driverData)
+					except sqlite3.IntegrityError:
+						pass
+				db.commit()
+				db.close()
+			if self.stout:
+				for driver in drivers:
+					print driver
+			return
+		except AttributeError:
+			return
+			
