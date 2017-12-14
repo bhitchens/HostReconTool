@@ -67,6 +67,8 @@ class WMIConnection:
 		self.shares()
 		self.physicalDisks()
 		self.physicalMemory()
+		self.patches()
+		self.bios()
 
 	#comments on this method apply to the other WMI methods
 	def sysData(self):
@@ -414,4 +416,27 @@ class WMIConnection:
 		if self.stout:
 			for fix in fixes:
 				print fix
+		return
+		
+	def bios(self):
+		bios = self.w.Win32_BIOS()
+		if self.database != "":
+			try:
+				db = sqlite3.connect(self.database)
+				db.text_factory = str
+				c = db.cursor()
+				c.execute('''CREATE TABLE bios_data (ComputerName TEXT, ipAddr text, BiosCharacteristics text, BIOSVersion text, BuildNumber text, Caption text, CodeSet text, CurrentLanguage text, Description text, EmbeddedControllerMajorVersion text, EmbeddedControllerMinorVersion text, IdentificationCode text, InstallableLanguages text, InstallDate text, LanguageEdition text, ListOfLanguages text, Manufacturer text, Name text, OtherTargetOS text, PrimaryBIOS text, ReleaseDate text, SerialNumber text, SMBIOSBIOSVersion text, SMBIOSMajorVersion text, SMBIOSMinorVersion text, SMBIOSPresent text, SoftwareElementID text, SoftwareElementState text, Status text, SystemBiosMajorVersion text, SystemBiosMinorVersion text, TargetOperatingSystem text, Version text, unique (ComputerName, ipAddr, BIOSVersion))''')
+			except sqlite3.OperationalError:
+				pass
+			for b in bios:
+				try:
+					biosData = (computerName, ipAddr, self.check(b, "BiosCharacteristics"), self.check(b, "BIOSVersion"), self.check(b, "BuildNumber"), self.check(b, "Caption"), self.check(b, "CodeSet"), self.check(b, "CurrentLanguage"), self.check(b, "Description"), self.check(b, "EmbeddedControllerMajorVersion"), self.check(b, "EmbeddedControllerMinorVersion"), self.check(b, "IdentificationCode"), self.check(b, "InstallableLanguages"), self.check(b, "InstallDate"), self.check(b, "LanguageEdition"), self.check(b, "ListOfLanguages"), self.check(b, "Manufacturer"), self.check(b, "Name"), self.check(b, "OtherTargetOS"), self.check(b, "PrimaryBIOS"), self.check(b, "ReleaseDate"), self.check(b, "SerialNumber"), self.check(b, "SMBIOSBIOSVersion"), self.check(b, "SMBIOSMajorVersion"), self.check(b, "SMBIOSMinorVersion"), self.check(b, "SMBIOSPresent"), self.check(b, "SoftwareElementID"), self.check(b, "SoftwareElementState"), self.check(b, "Status"), self.check(b, "SystemBiosMajorVersion"), self.check(b, "SystemBiosMinorVersion"), self.check(b, "TargetOperatingSystem"), self.check(b, "Version"))
+					c.execute('INSERT INTO bios_data VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', biosData)
+				except sqlite3.IntegrityError:
+					pass
+			db.commit()
+			db.close()
+		if self.stout:
+			for b in bios:
+				print b
 		return

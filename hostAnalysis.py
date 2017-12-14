@@ -39,8 +39,8 @@ def runSwitches(connection, psexec, dbcheck):
 		if dbcheck:
 			connection.sysData()
 			computerName = connection.getComputerName()
-		if database != "":
-			computerName = connection.getComputerName()
+		#if database != "":
+			#computerName = connection.getComputerName()
 		#database, standard out, and remote switches have already been processed; skip them
 		if arg == "-d" or arg == "--db" or arg == "-i" or arg == "--remote" or arg == "--username" or arg == "--password":
 			i += 2
@@ -106,6 +106,9 @@ def runSwitches(connection, psexec, dbcheck):
 		elif arg == "--routes":
 			psexec.route()
 			i += 1
+		elif arg == "-b" or arg == "--bios":
+			connection.bios()
+			i += 1
 		else:
 			print "Error: unrecognized switch " + arg
 			sys.exit()
@@ -121,11 +124,11 @@ def testDBQuery():
 	db.close()
 
 def testWMIQuery():
-	connection = wmiqueries.WMIConnection(remote)
+	connection = wmiqueries.WMIConnection(remote, "", "")
 	connection.connect()
 	connection.database = database
 	connection.stout = stout
-	for item in connection.w.Win32_PhysicalMemory():
+	for item in connection.w.Win32_LogonSessionMappedDisk ():
 		print item
 	
 def testPsexQuery():
@@ -245,6 +248,7 @@ if ip != "":
 			connection.connect()
 			connection.database = database
 			connection.stout = stout
+			connection.bios()
 			psexec = psexecqueries.PSExecQuery(remote, user, password)
 			psexec.database = database
 			psexec.stout = stout
@@ -265,5 +269,4 @@ else:
 	psexec.database = database
 	psexec.stout = stout
 	psexec.setComputerName()
-	#psexec.arp()
 	runSwitches(connection, psexec, dbcheck)
