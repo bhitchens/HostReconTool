@@ -8,11 +8,12 @@ class PSExecQuery:
 	computerName = ""
 	stout = False
 	
-	def __init__(self, remote, user, password):
+	def __init__(self, remote, user, password, verbose):
 		self.remote = remote
 		self.user = user
 		self.password = password
 		self.w = None
+		self.verbose = verbose
 		global ipAddr
 		#if a remote IP has been provided, set the ipAddr global to that IP
 		if remote != "":
@@ -38,7 +39,7 @@ class PSExecQuery:
 			proc = subprocess.Popen(list, stdout=subprocess.PIPE, stderr=FNULL)
 			FNULL.close()
 			return proc.stdout.read().split('\n')
-		list = ["psexec.exe", "-AcceptEULA", "-h", "\\\\" + str(ipAddr), "-h"] + command.split(" ")
+		list = ["psexec.exe", "-AcceptEULA", "\\\\" + str(ipAddr), "-h"] + command.split(" ")
 		FNULL = open(os.devnull, 'w')
 		proc = subprocess.Popen(list, stdout=subprocess.PIPE, stderr=FNULL)
 		FNULL.close()		

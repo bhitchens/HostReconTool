@@ -1,8 +1,6 @@
 Win32_OnBoardDevice https://msdn.microsoft.com/en-us/library/aa394238(v=vs.85).aspx
-Win32_BIOS https://msdn.microsoft.com/en-us/library/aa394077(v=vs.85).aspx
 Win32_IDEController https://msdn.microsoft.com/en-us/library/aa394155(v=vs.85).aspx
 Win32_USBControllerDevice 
-Win32_PNPEntity https://msdn.microsoft.com/en-us/library/aa394353(v=vs.85).aspx
 Win32_DiskPartition
 Win32_Battery
 Win32_Printer
@@ -12,7 +10,7 @@ Win32_PrintJob
 Win32_TCPIPPrinterPort
 Win32_Desktop
 Win32_Environment
-Win32_SystemDriver Win32_DriverVXD 
+* Win32_DriverVXD 
 Win32_MappedLogicalDisk
 Win32_CodecFile
 Win32_IP4RouteTable

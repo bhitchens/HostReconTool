@@ -5,13 +5,14 @@ class WMIConnection:
 	ipAddr = ""
 	database = ""
 	computerName = ""
-	stout = False	
+	stout = False
 	
-	def __init__(self, remote, user, password):
+	def __init__(self, remote, user, password, verbose):
 		self.remote = remote
 		self.user = user
 		self.password = password
 		self.w = None
+		self.verbose = verbose
 		global ipAddr
 		#if a remote IP has been provided, set the ipAddr global to that IP
 		if remote != "":
@@ -73,6 +74,7 @@ class WMIConnection:
 
 	#comments on this method apply to the other WMI methods
 	def sysData(self):
+		if (self.verbose): print "Fetching System Data"
 		#get the WMI data
 		sys = self.w.Win32_ComputerSystem()[0]
 		#if a db has been provided
@@ -99,14 +101,16 @@ class WMIConnection:
 				db.commit()
 				#close the db
 				db.close()
+				if (self.verbose): print "Done fetching system data"
 			except sqlite3.IntegrityError:
-				pass
+				pass			
 		#if standard out is selected, print the WMI data to standard out
 		if self.stout:
 			print sys
 		return
 	
 	def userData(self):
+		if (self.verbose): print "Fetching user data"
 		accounts = self.w.Win32_UserAccount()
 		if self.database != "":
 			try:
@@ -121,6 +125,7 @@ class WMIConnection:
 					c.execute('INSERT INTO user_data VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', accountData)	
 				db.commit()
 				db.close()
+				if (self.verbose): print "Completed fetching user data"
 			except sqlite3.IntegrityError:
 				pass
 		if self.stout:
@@ -129,6 +134,7 @@ class WMIConnection:
 		return
 
 	def netLogin(self):
+		if (self.verbose): print "Fetching net login data"
 		logins = self.w.Win32_NetworkLoginProfile()
 		if self.database != "":
 			try:
@@ -143,6 +149,7 @@ class WMIConnection:
 					c.execute('INSERT INTO net_login VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', loginData)	
 				db.commit()
 				db.close()
+				if (self.verbose): print "Completed fetching net login data"
 			except sqlite3.IntegrityError:
 				pass		
 		if self.stout:
@@ -151,6 +158,7 @@ class WMIConnection:
 		return
 	
 	def groupData(self):
+		if (self.verbose): print "Fetching group data"
 		groups = self.w.Win32_Group()
 		if self.database != "":
 			db = sqlite3.connect(self.database)
@@ -165,6 +173,7 @@ class WMIConnection:
 					c.execute('INSERT INTO group_data VALUES (?,?,?,?,?,?,?,?,?,?)', groupData)		
 				db.commit()
 				db.close()
+				if (self.verbose): print "Completed fetching group data"
 			except sqlite3.IntegrityError:
 				pass
 		if self.stout:
@@ -173,6 +182,7 @@ class WMIConnection:
 		return	
 
 	def logicalDisks(self):		
+		if (self.verbose): print "Fetching logical disk data"
 		disks = self.w.Win32_LogicalDisk()
 		if self.database != "":
 			try:
@@ -187,6 +197,7 @@ class WMIConnection:
 					c.execute('INSERT INTO logical_disks VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', diskData)
 				db.commit()
 				db.close()
+				if (self.verbose): print "Completed fetching logical disk data"
 			except sqlite3.IntegrityError:
 				pass		
 		if self.stout:
@@ -195,6 +206,7 @@ class WMIConnection:
 		return
 		
 	def timeZone(self):
+		if (self.verbose): print "Fetching time zone data"
 		zones = self.w.Win32_TimeZone()
 		if self.database != "":
 			try:
@@ -209,6 +221,7 @@ class WMIConnection:
 					c.execute('INSERT INTO time_zone VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', zoneData)	
 				db.commit()
 				db.close()
+				if (self.verbose): print "Completed fetching time zone data"
 			except sqlite3.IntegrityError:
 				pass
 		if self.stout:
@@ -217,6 +230,7 @@ class WMIConnection:
 		return
 		
 	def startupPrograms(self):
+		if (self.verbose): print "Fetching startup programs"
 		programs = self.w.Win32_StartupCommand()
 		if self.database != "":
 			try:
@@ -229,6 +243,7 @@ class WMIConnection:
 				try:
 					programData = (computerName, ipAddr, self.check(program, "Caption"), self.check(program, "Description"), self.check(program, "SettingID"), self.check(program, "Command"), self.check(program, "Location"), self.check(program, "Name"), self.check(program, "User"), self.check(program, "UserSID"))
 					c.execute('INSERT INTO startup_programs VALUES (?,?,?,?,?,?,?,?,?,?)', programData)
+					if (self.verbose): print "Completed fetching startup programs"
 				except sqlite3.IntegrityError:
 					pass
 			db.commit()
@@ -239,6 +254,7 @@ class WMIConnection:
 		return
 
 	def userProfiles(self):
+		if (self.verbose): print "Fetching user profiles"
 		profiles = self.w.Win32_UserProfile()
 		if self.database != "":
 			try:
@@ -251,6 +267,7 @@ class WMIConnection:
 				try:
 					profileData = (computerName, ipAddr, self.check(profile, "SID"), self.check(profile, "LocalPath"), self.check(profile, "Loaded"), self.check(profile, "refCount"), self.check(profile, "Special"), self.check(profile, "RoamingConfigured"), self.check(profile, "RoamingPath"), self.check(profile, "RoamingPreference"), self.check(profile, "Status"), self.check(profile, "LastUseTime"), self.check(profile, "LastDownloadTime"), self.check(profile, "LastUploadTime"), self.check(profile, "HealthStatus"), self.check(profile, "LastAttemptedProfileDownloadTime"), self.check(profile, "LastAttemptedProfileUploadTime"), self.check(profile, "LastBackgroundRegistryUploadTime"), self.check(profile, "AppDataRoaming"), self.check(profile, "Desktop"), self.check(profile, "StartMenu"), self.check(profile, "Documents"), self.check(profile, "Pictures"), self.check(profile, "Music"), self.check(profile, "Videos"), self.check(profile, "Favorites"), self.check(profile, "Contacts"), self.check(profile, "Downloads"), self.check(profile, "Links"), self.check(profile, "Searches"), self.check(profile, "SavedGames"))
 					c.execute('INSERT INTO user_profiles VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', profileData)
+					if (self.verbose): print "Completed fetching user profiles"
 				except sqlite3.IntegrityError:
 					pass
 			db.commit()
@@ -261,6 +278,7 @@ class WMIConnection:
 		return		
 		
 	def networkAdapters(self):
+		if (self.verbose): print "Fetching network adapter data"
 		adapters = self.w.Win32_NetworkAdapterConfiguration()
 		if self.database != "":
 			try:
@@ -273,6 +291,7 @@ class WMIConnection:
 				try:
 					adapterData = (computerName, ipAddr, self.check(adapter, "Caption"), self.check(adapter, "Description"), self.check(adapter, "SettingID"), self.check(adapter, "ArpAlwaysSourceRoute"), self.check(adapter, "ArpUseEtherSNAP"), self.check(adapter, "DatabasePath"), self.check(adapter, "DeadGWDetectEnabled"), self.check(adapter, "DefaultIPGateway"), self.check(adapter, "DefaultTOS"), self.check(adapter, "DefaultTTL"), self.check(adapter, "DHCPEnabled"), self.check(adapter, "DHCPLeaseExpires"), self.check(adapter, "DHCPLeaseObtained"), self.check(adapter, "DHCPServer"), self.check(adapter, "DNSDomain"), self.check(adapter, "DNSDomainSuffixSearchOrder"), self.check(adapter, "DNSEnabledForWINSResolution"), self.check(adapter, "DNSHostName"), self.check(adapter, "DNSServerSearchOrder"), self.check(adapter, "DomainDNSRegistrationEnabled"), self.check(adapter, "ForwardBufferMemory"), self.check(adapter, "FullDNSRegistrationEnabled"), self.check(adapter, "GatewayCostMetric"), self.check(adapter, "IGMPLevel"), self.check(adapter, "Index"), self.check(adapter, "InterfaceIndex"), self.check(adapter, "IPAddress"), self.check(adapter, "IPConnectionMetric"), self.check(adapter, "IPEnabled"), self.check(adapter, "IPFilterSecurityEnabled"), self.check(adapter, "IPPortSecurityEnabled"), self.check(adapter, "IPSecPermitIPProtocols"), self.check(adapter, "IPSecPermitTCPPorts"), self.check(adapter, "IPSecPermitUDPPorts"), self.check(adapter, "IPSubnet"), self.check(adapter, "IPUseZeroBroadcast"), self.check(adapter, "IPXAddress"), self.check(adapter, "IPXEnabled"), self.check(adapter, "IPXFrameType"), self.check(adapter, "IPXMediaType"), self.check(adapter, "IPXNetworkNumber"), self.check(adapter, "IPXVirtualNetNumber"), self.check(adapter, "KeepAliveInterval"), self.check(adapter, "KeepAliveTime"), self.check(adapter, "MACAddress"), self.check(adapter, "MTU"), self.check(adapter, "NumForwardPackets"), self.check(adapter, "PMTUBHDetectEnabled"), self.check(adapter, "PMTUDiscoveryEnabled"), self.check(adapter, "ServiceName"), self.check(adapter, "TcpipNetbiosOptions"), self.check(adapter, "TcpMaxConnectRetransmissions"), self.check(adapter, "TcpMaxDataRetransmissions"), self.check(adapter, "TcpNumConnections"), self.check(adapter, "TcpUseRFC1122UrgentPointer"), self.check(adapter, "TcpWindowSize"), self.check(adapter, "WINSEnableLMHostsLookup"), self.check(adapter, "WINSHostLookupFile"), self.check(adapter, "WINSPrimaryServer"), self.check(adapter, "WINSScopeID"), self.check(adapter, "WINSSecondaryServer"))
 					c.execute('INSERT INTO network_adapters VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', adapterData)
+					if (self.verbose): print "Completed fetching network adapter data"
 				except sqlite3.IntegrityError:
 					pass
 			db.commit()
@@ -283,6 +302,7 @@ class WMIConnection:
 		return
 
 	def processes(self):
+		if (self.verbose): print "Fetching processes"
 		processes = self.w.win32_process()
 		if self.database != "":
 			try:
@@ -295,6 +315,7 @@ class WMIConnection:
 				try:
 					processData = (computerName, ipAddr, self.check(process, "CreationClassName"), self.check(process, "Caption"), self.check(process, "CommandLine"), self.check(process, "CreationDate"), self.check(process, "CSCreationClassName"), self.check(process, "CSName"), self.check(process, "Description"), self.check(process, "ExecutablePath"), self.check(process, "ExecutionState"), self.check(process, "Handle"), self.check(process, "HandleCount"), self.check(process, "InstallDate"), self.check(process, "KernelModeTime"), self.check(process, "MaximumWorkingSetSize"), self.check(process, "MinimumWorkingSetSize"), self.check(process, "Name"), self.check(process, "OSCreationClassName"), self.check(process, "OSName"), self.check(process, "OtherOperationCount"), self.check(process, "OtherTransferCount"), self.check(process, "PageFaults"), self.check(process, "PageFileUsage"), self.check(process, "ParentProcessId"), self.check(process, "PeakPageFileUsage"), self.check(process, "PeakVirtualSize"), self.check(process, "PeakWorkingSetSize"), self.check(process, "Priority"), self.check(process, "PrivatePageCount"), self.check(process, "ProcessId"), self.check(process, "QuotaNonPagedPoolUsage"), self.check(process, "QuotaPagedPoolUsage"), self.check(process, "QuotaPeakNonPagedPoolUsage"), self.check(process, "QuotaPeakPagedPoolUsage"), self.check(process, "ReadOperationCount"), self.check(process, "ReadTransferCount"), self.check(process, "SessionId"), self.check(process, "Status"), self.check(process, "TerminationDate"), self.check(process, "ThreadCount"), self.check(process, "UserModeTime"), self.check(process, "VirtualSize"), self.check(process, "WindowsVersion"), self.check(process, "WorkingSetSize"), self.check(process, "WriteOperationCount"), self.check(process, "WriteTransferCount"))
 					c.execute('INSERT INTO processes VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', processData)
+					if (self.verbose): print "Completed fetching processes"
 				except sqlite3.IntegrityError:
 					pass
 			db.commit()
@@ -305,6 +326,7 @@ class WMIConnection:
 		return
 		
 	def services(self):
+		if (self.verbose): print "Fetching services"
 		services = self.w.win32_Service()
 		if self.database != "":
 			try:
@@ -318,6 +340,7 @@ class WMIConnection:
 				try:
 					serviceData = (computerName, ipAddr, self.check(service, "AcceptPause"), self.check(service, "AcceptStop"), self.check(service, "Caption"), self.check(service, "CheckPoint"), self.check(service, "CreationClassName"), self.check(service, "DelayedAutoStart"), self.check(service, "Description"), self.check(service, "DesktopInteract"), self.check(service, "DisplayName"), self.check(service, "ErrorControl"), self.check(service, "ExitCode"), self.check(service, "InstallDate"), self.check(service, "Name"), self.check(service, "PathName"), self.check(service, "serviceId"), self.check(service, "ServiceSpecificExitCode"), self.check(service, "ServiceType"), self.check(service, "Started"), self.check(service, "StartMode"), self.check(service, "StartName"), self.check(service, "State"), self.check(service, "Status"), self.check(service, "SystemCreationClassName"), self.check(service, "SystemName"), self.check(service, "TagId"), self.check(service, "WaitHint"))
 					c.execute('INSERT INTO services VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', serviceData)
+					if (self.verbose): print "Completed fetching services"
 				except sqlite3.IntegrityError:
 					pass
 			db.commit()
@@ -328,6 +351,7 @@ class WMIConnection:
 		return	
 		
 	def shares(self):
+		if (self.verbose): print "Fetching shares"
 		remshares = self.w.Win32_Share()
 		if self.database != "":
 			try:
@@ -341,6 +365,7 @@ class WMIConnection:
 				try:
 					shareData = (computerName, ipAddr, self.check(shares, "Caption"), self.check(shares, "Description"), self.check(shares, "InstallDate"), self.check(shares, "Status"), self.check(shares, "AccessMask"), self.check(shares, "AllowMaximum"), self.check(shares, "MaximumAllowed"), self.check(shares, "Name"), self.check(shares, "Path"), self.check(shares, "Type"))
 					c.execute('INSERT INTO shares VALUES (?,?,?,?,?,?,?,?,?,?,?,?)', shareData)
+					if (self.verbose): print "Completed fetching shares"
 				except sqlite3.IntegrityError:
 					pass
 			db.commit()
@@ -351,6 +376,7 @@ class WMIConnection:
 		return
 
 	def physicalDisks(self):
+		if (self.verbose): print "Fetching physical disk data"
 		drives = self.w.Win32_DiskDrive()
 		if self.database != "":
 			try:
@@ -364,6 +390,7 @@ class WMIConnection:
 				try:
 					diskData = (computerName, ipAddr, self.check(drive, "Availability"), self.check(drive, "BytesPerSector"), self.check(drive, "Capabilities"), self.check(drive, "CapabilityDescriptions"), self.check(drive, "Caption"), self.check(drive, "CompressionMethod"), self.check(drive, "ConfigManagerErrorCode"), self.check(drive, "ConfigManagerUserConfig"), self.check(drive, "CreationClassName"), self.check(drive, "DefaultBlockSize"), self.check(drive, "Description"), self.check(drive, "DeviceID"), self.check(drive, "ErrorCleared"), self.check(drive, "ErrorDescription"), self.check(drive, "ErrorMethodology"), self.check(drive, "FirmwareRevision"), self.check(drive, "Index"), self.check(drive, "InstallDate"), self.check(drive, "InterfaceType"), self.check(drive, "LastErrorCode"), self.check(drive, "Manufacturer"), self.check(drive, "MaxBlockSize"), self.check(drive, "MaxMediaSize"), self.check(drive, "MediaLoaded"), self.check(drive, "MediaType"), self.check(drive, "MinBlockSize"), self.check(drive, "Model"), self.check(drive, "Name"), self.check(drive, "NeedsCleaning"), self.check(drive, "NumberOfMediaSupported"), self.check(drive, "Partitions"), self.check(drive, "PNPDeviceID"), self.check(drive, "PowerManagementCapabilities"), self.check(drive, "PowerManagementSupported"), self.check(drive, "SCSIBus"), self.check(drive, "SCSILogicalUnit"), self.check(drive, "SCSIPort"), self.check(drive, "SCSITargetId"), self.check(drive, "SectorsPerTrack"), self.check(drive, "SerialNumber"), self.check(drive, "Signature"), self.check(drive, "Size"), self.check(drive, "Status"), self.check(drive, "StatusInfo"), self.check(drive, "SystemCreationClassName"), self.check(drive, "SystemName"), self.check(drive, "TotalCylinders"), self.check(drive, "TotalHeads"), self.check(drive, "TotalSectors"), self.check(drive, "TotalTracks"), self.check(drive, "TracksPerCylinder"))
 					c.execute('INSERT INTO physical_disks VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', diskData)
+					if (self.verbose): print "Completed fetching physical disk data"
 				except sqlite3.IntegrityError:
 					pass
 			db.commit()
@@ -374,6 +401,7 @@ class WMIConnection:
 		return
 		
 	def physicalMemory(self):
+		if (self.verbose): print "Fetching physical memory data"
 		memory = self.w.Win32_PhysicalMemory()
 		if self.database != "":
 			try:
@@ -385,8 +413,9 @@ class WMIConnection:
 				pass
 			for mem in memory:
 				try:
-					diskData = (computerName, ipAddr, self.check(mem, "Attributes"), self.check(mem, "BankLabel"), self.check(mem, "Capacity"), self.check(mem, "Caption"), self.check(mem, "ConfiguredClockSpeed"), self.check(mem, "ConfiguredVoltage"), self.check(mem, "CreationClassName"), self.check(mem, "DataWidth"), self.check(mem, "Description"), self.check(mem, "DeviceLocator"), self.check(mem, "FormFactor"), self.check(mem, "HotSwappable"), self.check(mem, "InstallDate"), self.check(mem, "InterleaveDataDepth"), self.check(mem, "InterleavePosition"), self.check(mem, "Manufacturer"), self.check(mem, "MaxVoltage"), self.check(mem, "MemoryType"), self.check(mem, "MinVoltage"), self.check(mem, "Model"), self.check(mem, "Name"), self.check(mem, "OtherIdentifyingInfo"), self.check(mem, "PartNumber"), self.check(mem, "PositionInRow"), self.check(mem, "PoweredOn"), self.check(mem, "Removable"), self.check(mem, "Replaceable"), self.check(mem, "SerialNumber"), self.check(mem, "SKU"), self.check(mem, "SMBIOSMemoryType"), self.check(mem, "Speed"), self.check(mem, "Status"), self.check(mem, "Tag"), self.check(mem, "TotalWidth"), self.check(mem, "TypeDetail"), self.check(mem, "Version"))
-					c.execute('INSERT INTO physical_memory VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', diskData)
+					memoryData = (computerName, ipAddr, self.check(mem, "Attributes"), self.check(mem, "BankLabel"), self.check(mem, "Capacity"), self.check(mem, "Caption"), self.check(mem, "ConfiguredClockSpeed"), self.check(mem, "ConfiguredVoltage"), self.check(mem, "CreationClassName"), self.check(mem, "DataWidth"), self.check(mem, "Description"), self.check(mem, "DeviceLocator"), self.check(mem, "FormFactor"), self.check(mem, "HotSwappable"), self.check(mem, "InstallDate"), self.check(mem, "InterleaveDataDepth"), self.check(mem, "InterleavePosition"), self.check(mem, "Manufacturer"), self.check(mem, "MaxVoltage"), self.check(mem, "MemoryType"), self.check(mem, "MinVoltage"), self.check(mem, "Model"), self.check(mem, "Name"), self.check(mem, "OtherIdentifyingInfo"), self.check(mem, "PartNumber"), self.check(mem, "PositionInRow"), self.check(mem, "PoweredOn"), self.check(mem, "Removable"), self.check(mem, "Replaceable"), self.check(mem, "SerialNumber"), self.check(mem, "SKU"), self.check(mem, "SMBIOSMemoryType"), self.check(mem, "Speed"), self.check(mem, "Status"), self.check(mem, "Tag"), self.check(mem, "TotalWidth"), self.check(mem, "TypeDetail"), self.check(mem, "Version"))
+					c.execute('INSERT INTO physical_memory VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', memoryData)
+					if (self.verbose): print "Completed fetching physical memory data"
 				except sqlite3.IntegrityError:
 					pass
 			db.commit()
@@ -397,19 +426,21 @@ class WMIConnection:
 		return
 		
 	def patches(self):
+		if (self.verbose): print "Fetching patch data"
 		fixes = self.w.Win32_QuickFixEngineering()
 		if self.database != "":
 			try:
 				db = sqlite3.connect(self.database)
 				db.text_factory = str
 				c = db.cursor()
-				c.execute('''CREATE TABLE physical_memory (ComputerName TEXT, ipAddr text, Caption TEXT, Description TEXT, InstallDate TEXT, Name TEXT, Status TEXT, CSName TEXT, FixComments TEXT, HotFixID TEXT, InstalledBy TEXT, InstalledOn TEXT, ServicePackInEffect TEXT, unique (ComputerName, ipAddr, Caption))''')
+				c.execute('''CREATE TABLE patch_data (ComputerName TEXT, ipAddr text, Caption TEXT, Description TEXT, InstallDate TEXT, Name TEXT, Status TEXT, CSName TEXT, FixComments TEXT, HotFixID TEXT, InstalledBy TEXT, InstalledOn TEXT, ServicePackInEffect TEXT, unique (ComputerName, ipAddr, Caption))''')
 			except sqlite3.OperationalError:
 				pass
 			for fix in fixes:
 				try:
-					diskData = (computerName, ipAddr, self.check(fix, "Caption"), self.check(fix, "Description"), self.check(fix, "InstallDate"), self.check(fix, "Name"), self.check(fix, "Status"), self.check(fix, "CSName"), self.check(fix, "FixComments"), self.check(fix, "HotFixID"), self.check(fix, "InstalledBy"), self.check(fix, "InstalledOn"), self.check(fix, "ServicePackInEffect"))
-					c.execute('INSERT INTO physical_memory VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)', diskData)
+					patchData = (computerName, ipAddr, self.check(fix, "Caption"), self.check(fix, "Description"), self.check(fix, "InstallDate"), self.check(fix, "Name"), self.check(fix, "Status"), self.check(fix, "CSName"), self.check(fix, "FixComments"), self.check(fix, "HotFixID"), self.check(fix, "InstalledBy"), self.check(fix, "InstalledOn"), self.check(fix, "ServicePackInEffect"))
+					c.execute('INSERT INTO patch_data VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)', patchData)
+					if (self.verbose): print "Completed fetching patch data"
 				except sqlite3.IntegrityError:
 					pass
 			db.commit()
@@ -421,6 +452,7 @@ class WMIConnection:
 		
 		
 	def bios(self):
+		if (self.verbose): print "Fetching BIOS data"
 		bios = self.w.Win32_BIOS()
 		if self.database != "":
 			try:
@@ -434,6 +466,7 @@ class WMIConnection:
 				try:
 					biosData = (computerName, ipAddr, self.check(b, "BiosCharacteristics"), self.check(b, "BIOSVersion"), self.check(b, "BuildNumber"), self.check(b, "Caption"), self.check(b, "CodeSet"), self.check(b, "CurrentLanguage"), self.check(b, "Description"), self.check(b, "EmbeddedControllerMajorVersion"), self.check(b, "EmbeddedControllerMinorVersion"), self.check(b, "IdentificationCode"), self.check(b, "InstallableLanguages"), self.check(b, "InstallDate"), self.check(b, "LanguageEdition"), self.check(b, "ListOfLanguages"), self.check(b, "Manufacturer"), self.check(b, "Name"), self.check(b, "OtherTargetOS"), self.check(b, "PrimaryBIOS"), self.check(b, "ReleaseDate"), self.check(b, "SerialNumber"), self.check(b, "SMBIOSBIOSVersion"), self.check(b, "SMBIOSMajorVersion"), self.check(b, "SMBIOSMinorVersion"), self.check(b, "SMBIOSPresent"), self.check(b, "SoftwareElementID"), self.check(b, "SoftwareElementState"), self.check(b, "Status"), self.check(b, "SystemBiosMajorVersion"), self.check(b, "SystemBiosMinorVersion"), self.check(b, "TargetOperatingSystem"), self.check(b, "Version"))
 					c.execute('INSERT INTO bios_data VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', biosData)
+					if (self.verbose): print "Completed fetching BIOS data"
 				except sqlite3.IntegrityError:
 					pass
 			db.commit()
@@ -444,6 +477,7 @@ class WMIConnection:
 		return
 		
 	def pnp(self):
+		if (self.verbose): print "Fetching PlugNPlay data"
 		pnp = self.w.Win32_PNPEntity()
 		if self.database != "":
 			try:
@@ -457,6 +491,7 @@ class WMIConnection:
 				try:
 					pnpData = (computerName, ipAddr, self.check(plug, "Availability"), self.check(plug, "Caption"), self.check(plug, "ClassGuid"), self.check(plug, "CompatibleID"), self.check(plug, "ConfigManagerErrorCode"), self.check(plug, "ConfigManagerUserConfig"), self.check(plug, "CreationClassName"), self.check(plug, "Description"), self.check(plug, "DeviceID"), self.check(plug, "ErrorCleared"), self.check(plug, "ErrorDescription"), self.check(plug, "HardwareID"), self.check(plug, "InstallDate"), self.check(plug, "LastErrorCode"), self.check(plug, "Manufacturer"), self.check(plug, "Name"), self.check(plug, "PNPClass"), self.check(plug, "PNPDeviceID"), self.check(plug, "PowerManagementCapabilities"), self.check(plug, "PowerManagementSupported"), self.check(plug, "Present"), self.check(plug, "Service"), self.check(plug, "Status"), self.check(plug, "StatusInfo"), self.check(plug, "SystemCreationClassName"), self.check(plug, "SystemName"))
 					c.execute('INSERT INTO plugnplay VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', pnpData)
+					if (self.verbose): print "Completed fetching PlugNPlay data"
 				except sqlite3.IntegrityError:
 					pass
 			db.commit()
@@ -467,6 +502,7 @@ class WMIConnection:
 		return
 		
 	def drivers(self):
+		if (self.verbose): print "Fetching driver data"
 		try:
 			drivers = self.w.Win32_SystemDriver()
 			if self.database != "":
@@ -481,6 +517,7 @@ class WMIConnection:
 					try:
 						driverData = (computerName, ipAddr, self.check(driver, "AcceptPause"), self.check(driver, "AcceptStop"), self.check(driver, "Caption"), self.check(driver, "CreationClassName"), self.check(driver, "Description"), self.check(driver, "DesktopInteract"), self.check(driver, "DisplayName"), self.check(driver, "ErrorControl"), self.check(driver, "ExitCode"), self.check(driver, "InstallDate"), self.check(driver, "Name"), self.check(driver, "PathName"), self.check(driver, "ServiceSpecificExitCode"), self.check(driver, "ServiceType"), self.check(driver, "Started"), self.check(driver, "StartMode"), self.check(driver, "StartName"), self.check(driver, "State"), self.check(driver, "Status"), self.check(driver, "SystemCreationClassName"), self.check(driver, "SystemName"), self.check(driver, "TagId"))
 						c.execute('INSERT INTO system_drivers VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', driverData)
+						if (self.verbose): print "Completed fetching driver data"
 					except sqlite3.IntegrityError:
 						pass
 				db.commit()
@@ -490,5 +527,6 @@ class WMIConnection:
 					print driver
 			return
 		except AttributeError:
+			if (self.verbose): print "Failed to fetch driver data"
 			return
 			

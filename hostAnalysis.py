@@ -15,6 +15,7 @@ mPassword = ""
 remote = ""
 database = ""
 stout = False
+verbose = False
 
 #Process provided switches; passed WMI connection
 def runSwitches(connection, psexec, dbcheck):		
@@ -29,6 +30,10 @@ def runSwitches(connection, psexec, dbcheck):
 		psexec.all()
 		sys.exit()
 	i = 1
+	
+	#boolean for checking if sysData has already run
+	sysDataComplete = False
+	
 	while i < len(sys.argv):
 		arg = sys.argv[i]
 		#error if there is an improperly formatted switch
@@ -36,17 +41,16 @@ def runSwitches(connection, psexec, dbcheck):
 			print "Error: " + arg + " is not a valid parameter. Try \'-h\' or \'--help\' for a list of options."
 			sys.exit()
 		#automatically run sysData if using a database
-		if dbcheck:
+		if dbcheck and not sysDataComplete:
 			connection.sysData()
 			computerName = connection.getComputerName()
-		connection.drivers()
-		sys.exit()
-		#if database != "":
-			#computerName = connection.getComputerName()
+			sysDataComplete = True
+		#connection.drivers()
+		#sys.exit()
 		#database, standard out, and remote switches have already been processed; skip them
 		if arg == "-d" or arg == "--db" or arg == "-i" or arg == "--remote" or arg == "--username" or arg == "--password":
 			i += 2
-		elif arg == "-o" or arg == "--stout":
+		elif arg == "-o" or arg == "--stout" or arg == "-v" or arg == "--verbose":
 			i += 1
 		elif (arg == "-y" or arg == "--sysinfo") and not dbcheck:
 			connection.sysData()
@@ -113,6 +117,9 @@ def runSwitches(connection, psexec, dbcheck):
 			i += 1
 		elif arg == "--pnp":
 			connection.pnp()
+			i += 1
+		elif arg == "--drivers":
+			connection.drivers()
 			i += 1
 		else:
 			print "Error: unrecognized switch " + arg
@@ -243,18 +250,29 @@ except ValueError:
 		ip = sys.argv[sys.argv.index("--remote") + 1]
 	except ValueError:
 		print "No remote address, running on local machine."
+		
+#check for verbose
+try:
+	sys.argv.index("-v")
+	verbose = True
+except ValueError:
+	try:
+		sys.argv.index("--verbose")
+		verbose = True
+	except ValueError:
+		verbose = False
 
 #if there is a remote ip, run all of the switches on each machine
 if ip != "":
 	try:
 		for ipaddr in IPNetwork(ip):
 			remote = ipaddr
-			connection = wmiqueries.WMIConnection(remote, user, password)
+			connection = wmiqueries.WMIConnection(remote, user, password, verbose)
 			connection.connect()
 			connection.database = database
 			connection.stout = stout
-			connection.bios()
-			psexec = psexecqueries.PSExecQuery(remote, user, password)
+			#connection.bios()
+			psexec = psexecqueries.PSExecQuery(remote, user, password, verbose)
 			psexec.database = database
 			psexec.stout = stout
 			#psexec.arp()
@@ -266,11 +284,11 @@ if ip != "":
 		
 #no remote IP
 else:
-	connection = wmiqueries.WMIConnection(remote, user, password)
+	connection = wmiqueries.WMIConnection(remote, user, password, verbose)
 	connection.connect()
 	connection.database = database
 	connection.stout = stout
-	psexec = psexecqueries.PSExecQuery(remote, user, password)
+	psexec = psexecqueries.PSExecQuery(remote, user, password, verbose)
 	psexec.database = database
 	psexec.stout = stout
 	psexec.setComputerName()
