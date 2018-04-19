@@ -1,5 +1,5 @@
 from netaddr import IPNetwork
-import sys, netaddr, wmiqueries, psexecqueries
+import sys, netaddr, wmiqueries, psexecqueries, sqlite3
 
 #these lines allow non-ASCII characters
 reload(sys)
@@ -285,11 +285,17 @@ if ip != "":
 #no remote IP
 else:
 	connection = wmiqueries.WMIConnection(remote, user, password, verbose)
-	connection.connect()
+	db = sqlite3.connect(database)
+	db.text_factory = str
+	c = db.cursor()
+	connection.connect(c)
 	connection.database = database
 	connection.stout = stout
 	psexec = psexecqueries.PSExecQuery(remote, user, password, verbose)
+	psexec.connectDB(c)
 	psexec.database = database
 	psexec.stout = stout
 	psexec.setComputerName()
 	runSwitches(connection, psexec, dbcheck)
+	db.commit()
+	db.close()
