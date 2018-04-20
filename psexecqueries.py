@@ -1,4 +1,3 @@
-#removed netaddr, math
 import sqlite3, sys, socket, subprocess, re, os
 
 class PSExecQuery:
