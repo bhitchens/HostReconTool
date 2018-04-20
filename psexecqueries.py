@@ -48,6 +48,9 @@ class PSExecQuery:
 		FNULL.close()		
 		return proc.stdout.read().split('\n')
 		
+	def dbInsert(self, name, data):
+		self.c.execute('INSERT INTO ' + name + ' VALUES (?' + ', ?' * (len(data) - 1) + ')', data)
+		
 	def all(self):
 		self.ports()
 		self.route()
@@ -85,7 +88,7 @@ class PSExecQuery:
 				else:
 					portsData = (computerName, ipAddr, splitLine[0], local[0].replace(";;", "::"), local[1], foreign[0].replace(";;", "::"), foreign[1], "", splitLine[3], owner)
 				try:
-					self.c.execute('INSERT INTO open_ports VALUES (?,?,?,?,?,?,?,?,?,?)', portsData)
+					self.dbInsert("open_ports", portsData)
 				except sqlite3.IntegrityError:
 					pass		
 		if self.stout:
@@ -114,7 +117,7 @@ class PSExecQuery:
 				else:
 					interfaceData = (computerName, ipAddr, resultsList[0], "", resultsList[1])
 				try:
-					self.c.execute('INSERT INTO interface_list VALUES (?,?,?,?,?)', interfaceData)
+					self.dbInsert("interface_list", interfaceData)
 				except sqlite3.IntegrityError:
 					pass
 				i += 1
@@ -129,7 +132,7 @@ class PSExecQuery:
 				resultsList = results[i].split()
 				routeData = (computerName, ipAddr, "Active", resultsList[0], resultsList[1], resultsList[2], resultsList[3], resultsList[4])
 				try:
-					self.c.execute('INSERT INTO v4_route_list VALUES (?,?,?,?,?,?,?,?)', routeData)
+					self.dbInsert("v4_route_list", routeData)
 				except sqlite3.IntegrityError:
 					pass
 				i += 1
@@ -140,7 +143,7 @@ class PSExecQuery:
 					resultsList = results[i].split()
 					routeData = (computerName, ipAddr, "Persistent", resultsList[0], resultsList[1], resultsList[2], "", resultsList[3])
 					try:
-						self.c.execute('INSERT INTO v4_route_list VALUES (?,?,?,?,?,?,?,?)', routeData)
+						self.dbInsert("v4_route_list", routeData)
 					except sqlite3.IntegrityError:
 						pass
 					i += 1
@@ -159,7 +162,7 @@ class PSExecQuery:
 					resultsList += results[i].strip().split()
 				routeData = (computerName, ipAddr, "Active", resultsList[0], resultsList[1], resultsList[2], resultsList[3])
 				try:
-					self.c.execute('INSERT INTO v6_route_list VALUES (?,?,?,?,?,?,?)', routeData)
+					self.dbInsert("v6_route_list", routeData)
 				except sqlite3.IntegrityError:
 					pass
 				i += 1
@@ -174,7 +177,7 @@ class PSExecQuery:
 						resultsList += results[i].strip().split()
 					routeData = (computerName, ipAddr, "Persistent", resultsList[0], resultsList[1], resultsList[2], resultsList[3])
 					try:
-						self.c.execute('INSERT INTO v6_route_list VALUES (?,?,?,?,?,?,?)', routeData)
+						self.dbInsert("v6_route_list", routeData)
 					except sqlite3.IntegrityError:
 						pass
 					i += 1
@@ -211,7 +214,7 @@ class PSExecQuery:
 					splitLine = line.split()
 					arpData = (computerName, ipAddr, interface, interfaceNum, splitLine[0], splitLine[1], splitLine[2])
 					try:
-						self.c.execute('INSERT INTO arp_data VALUES (?,?,?,?,?,?,?)', arpData)
+						self.dbInsert("arp_data", arpData)
 					except sqlite3.IntegrityError:
 						pass
 				if self.stout:
@@ -243,7 +246,7 @@ class PSExecQuery:
 				splitLine = line.strip().split(':')
 				wirelessData = (computerName, ipAddr, splitLine[0].strip(), splitLine[1].strip())
 				try:
-					self.c.execute('INSERT INTO wireless_profiles VALUES (?,?,?,?)', wirelessData)
+					self.dbInsert("wireless_profiles", wirelessData)
 				except sqlite3.IntegrityError:
 					pass
 				if self.stout:
