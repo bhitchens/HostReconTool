@@ -268,12 +268,16 @@ if ip != "":
 		for ipaddr in IPNetwork(ip):
 			remote = ipaddr
 			connection = wmiqueries.WMIConnection(remote, user, password, verbose)
+			db = sqlite3.connect(database)
+			db.text_factory = str
+			c = db.cursor()
 			connection.connect()
 			connection.database = database
 			connection.stout = stout
 			#connection.bios()
 			psexec = psexecqueries.PSExecQuery(remote, user, password, verbose)
 			psexec.database = database
+			psexec.connectDB(c)
 			psexec.stout = stout
 			#psexec.arp()
 			psexec.setComputerName()

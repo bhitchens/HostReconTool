@@ -92,8 +92,9 @@ class PSExecQuery:
 				except sqlite3.IntegrityError:
 					pass		
 		if self.stout:
-			while j < len(results):
-				j += 1
+			print results
+			#while j < len(results):
+				#j += 1
 	
 				
 	def route(self):
