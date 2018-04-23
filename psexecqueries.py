@@ -48,12 +48,14 @@ class PSExecQuery:
 		return proc.stdout.read().split('\n')
 		
 	def dbInsert(self, name, data):
+		print name
 		self.c.execute('INSERT INTO ' + name + ' VALUES (?' + ', ?' * (len(data) - 1) + ')', data)
 		
 	def all(self):
 		self.ports()
 		self.route()
 		self.arp()
+		self.wireless()
 	
 	def ports(self):
 		global computerName
@@ -249,5 +251,5 @@ class PSExecQuery:
 					self.dbInsert("wireless_profiles", wirelessData)
 				except sqlite3.IntegrityError:
 					pass
-				if self.stout:
-					print line
+			if self.stout:
+				print line

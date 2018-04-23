@@ -1,21 +1,8 @@
 from netaddr import IPNetwork
+from multiprocessing import Process, Lock
 import sys, netaddr, wmiqueries, psexecqueries, sqlite3
 
-#these lines allow non-ASCII characters
-reload(sys)
-sys.setdefaultencoding('utf-8')
-
-#Readding computer name PK and u/n p/w
-computerName = ""
-	
-mUser = ""
-mPassword = ""
-#Readding computer name PK and u/n p/w end
-
-remote = ""
-database = ""
-stout = False
-verbose = False
+lock = Lock()
 
 #Process provided switches; passed WMI connection
 def runSwitches(connection, psexec, dbcheck):		
@@ -156,150 +143,168 @@ def testPsexQuery():
 #testPsexQuery()
 #sys.exit()
 
-	
-#Actual start is here
+#main function
+def main():
+	#these lines allow non-ASCII characters
+	reload(sys)
+	sys.setdefaultencoding('utf-8')
 
-#help message
-if "-h" in sys.argv or "--help" in sys.argv:
-	helpStatement = "The following options are available:\n"
-	helpStatement += "-h or --help:\t\tThis help text\n"
-	helpStatement += "-d or --db:\t\tProvide database name or full path to specify location\n"
-	helpStatement += "-o or --stout:\t\tSend results to Standard Out\n"
-	helpStatement += "-i or --remote:\t\tIP Address or CIDR-Notation range of IP Addresses. Exclude for Local Machine\n"
-	helpStatement += "-u or --user:\t\tUser Name for remote system (must be used with -r)\n"
-	helpStatement += "-p or --pass:\t\tPassword for remote system (must be used with -r and -u)\n"
-	helpStatement += "-A or --all:\t\tRun all switches\n"
-	helpStatement += "-u or --users:\t\tUser account data\n"
-	helpStatement += "-n or --netlogin:\tNetwork Login data\n"
-	helpStatement += "-g or --groups:\t\tGroup data\n"
-	helpStatement += "-l or --ldisks:\t\tLogical Disk data\n"
-	helpStatement += "-t or --timezone:\tTimezone data\n"
-	helpStatement += "-s or --startup:\tStartup Program data\n"
-	helpStatement += "      --profiles:\tUser Profiles data\n"
-	helpStatement += "-a or --adapters:\tNetork Adapter data\n"
-	helpStatement += "-P or --process:\tProcesses data\n"
-	helpStatement += "-S or --services:\tServices data\n"
-	helpStatement += "-r or --shares:\t\tShared Resources data\n"
-	helpStatement += "-D or --pdisks:\t\tPhysical Disk data\n"
-	helpStatement += "-m or --memory:\t\tPhysical Memory data\n"
-	helpStatement += "-p or --ports:\t\tOpen Ports\n"
-	helpStatement += "      --patches:\tCurrently Applied Patches\n"
-	helpStatement += "      --arp:\t\tArp Table Data"
-	helpStatement += "      --routes:\t\tRouting Table Data"
-	print helpStatement
-	sys.exit()
+	#Readding computer name PK and u/n p/w
+	computerName = ""
+		
+	mUser = ""
+	mPassword = ""
+	#Readding computer name PK and u/n p/w end
 
-#boolean for supplied database
-dbcheck = False
-	
-#check for -d switch
-try:
-	database = sys.argv[sys.argv.index("-d") + 1]
-	dbcheck = True
-except ValueError:
-	#if it's not there, check for --db
+	remote = ""
+	database = ""
+	stout = False
+	verbose = False
+
+	#help message
+	if "-h" in sys.argv or "--help" in sys.argv:
+		helpStatement = "The following options are available:\n"
+		helpStatement += "-h or --help:\t\tThis help text\n"
+		helpStatement += "-d or --db:\t\tProvide database name or full path to specify location\n"
+		helpStatement += "-o or --stout:\t\tSend results to Standard Out\n"
+		helpStatement += "-i or --remote:\t\tIP Address or CIDR-Notation range of IP Addresses. Exclude for Local Machine\n"
+		helpStatement += "-u or --user:\t\tUser Name for remote system (must be used with -r)\n"
+		helpStatement += "-p or --pass:\t\tPassword for remote system (must be used with -r and -u)\n"
+		helpStatement += "-A or --all:\t\tRun all switches\n"
+		helpStatement += "-u or --users:\t\tUser account data\n"
+		helpStatement += "-n or --netlogin:\tNetwork Login data\n"
+		helpStatement += "-g or --groups:\t\tGroup data\n"
+		helpStatement += "-l or --ldisks:\t\tLogical Disk data\n"
+		helpStatement += "-t or --timezone:\tTimezone data\n"
+		helpStatement += "-s or --startup:\tStartup Program data\n"
+		helpStatement += "      --profiles:\tUser Profiles data\n"
+		helpStatement += "-a or --adapters:\tNetork Adapter data\n"
+		helpStatement += "-P or --process:\tProcesses data\n"
+		helpStatement += "-S or --services:\tServices data\n"
+		helpStatement += "-r or --shares:\t\tShared Resources data\n"
+		helpStatement += "-D or --pdisks:\t\tPhysical Disk data\n"
+		helpStatement += "-m or --memory:\t\tPhysical Memory data\n"
+		helpStatement += "-p or --ports:\t\tOpen Ports\n"
+		helpStatement += "      --patches:\tCurrently Applied Patches\n"
+		helpStatement += "      --arp:\t\tArp Table Data"
+		helpStatement += "      --routes:\t\tRouting Table Data"
+		print helpStatement
+		sys.exit()
+
+	#boolean for supplied database
+	dbcheck = False
+		
+	#check for -d switch
 	try:
-		database = sys.argv[sys.argv.index("--db") + 1]
+		database = sys.argv[sys.argv.index("-d") + 1]
 		dbcheck = True
 	except ValueError:
-		#if it's not there, hopefully -o/--stout is there
-		pass
+		#if it's not there, check for --db
+		try:
+			database = sys.argv[sys.argv.index("--db") + 1]
+			dbcheck = True
+		except ValueError:
+			#if it's not there, hopefully -o/--stout is there
+			pass
 
-#check for -o
-try:
-	sys.argv.index("-o")
-	stout = True
-except ValueError:
-	#if it's not there, check for --stout
+	#check for -o
 	try:
-		sys.argv.index("--stout")
+		sys.argv.index("-o")
 		stout = True
 	except ValueError:
-		#if no -o/--stout, check to see if the database was set
-		if database == "":
-			#if neither standard out or a db were provided, it is an error
-			print "Either -d or --db with database name or -o or --stout is required."
-			sys.exit()
-			
-#check for user name
-try:
+		#if it's not there, check for --stout
+		try:
+			sys.argv.index("--stout")
+			stout = True
+		except ValueError:
+			#if no -o/--stout, check to see if the database was set
+			if database == "":
+				#if neither standard out or a db were provided, it is an error
+				print "Either -d or --db with database name or -o or --stout is required."
+				sys.exit()
+				
+	#check for user name
 	try:
-		user = sys.argv[sys.argv.index("--username") + 1] 
-	except ValueError:
+		try:
+			user = sys.argv[sys.argv.index("--username") + 1] 
+		except ValueError:
+			user = ""
+	except IndexError:
+		print "Username must be supplied with --username\nAttempting to procede with no username"
 		user = ""
-except IndexError:
-	print "Username must be supplied with --username\nAttempting to procede with no username"
-	user = ""
-	
-#check for password
-try:
-	try:
-		password = sys.argv[sys.argv.index("--password") + 1]
-	except ValueError:
-		password = ""
-except IndexError:
-	print "Password must be supplied with --password\nAttempting to procede with no password"
-	password = ""
-
-#check for remote IP address switch
-ip = ""		
-try:
-	ip = sys.argv[sys.argv.index("-i") + 1]
-except ValueError:
-	try:
-		ip = sys.argv[sys.argv.index("--remote") + 1]
-	except ValueError:
-		print "No remote address, running on local machine."
 		
-#check for verbose
-try:
-	sys.argv.index("-v")
-	verbose = True
-except ValueError:
+	#check for password
 	try:
-		sys.argv.index("--verbose")
+		try:
+			password = sys.argv[sys.argv.index("--password") + 1]
+		except ValueError:
+			password = ""
+	except IndexError:
+		print "Password must be supplied with --password\nAttempting to procede with no password"
+		password = ""
+
+	#check for remote IP address switch
+	ip = ""		
+	try:
+		ip = sys.argv[sys.argv.index("-i") + 1]
+	except ValueError:
+		try:
+			ip = sys.argv[sys.argv.index("--remote") + 1]
+		except ValueError:
+			print "No remote address, running on local machine."
+			
+	#check for verbose
+	try:
+		sys.argv.index("-v")
 		verbose = True
 	except ValueError:
-		verbose = False
+		try:
+			sys.argv.index("--verbose")
+			verbose = True
+		except ValueError:
+			verbose = False
 
-#if there is a remote ip, run all of the switches on each machine
-if ip != "":
-	try:
-		for ipaddr in IPNetwork(ip):
-			remote = ipaddr
-			connection = wmiqueries.WMIConnection(remote, user, password, verbose)
-			db = sqlite3.connect(database)
-			db.text_factory = str
-			c = db.cursor()
-			connection.connect()
-			connection.database = database
-			connection.stout = stout
-			#connection.bios()
-			psexec = psexecqueries.PSExecQuery(remote, user, password, verbose)
-			psexec.database = database
-			psexec.connectDB(c)
-			psexec.stout = stout
-			#psexec.arp()
-			psexec.setComputerName()
-			runSwitches(connection, psexec, dbcheck)
-	except netaddr.core.AddrFormatError:
-		print "Invalid network address"
-		sys.exit()
+	#if there is a remote ip, run all of the switches on each machine
+	if ip != "":
+		try:
+			for ipaddr in IPNetwork(ip):
+				remote = ipaddr
+				connection = wmiqueries.WMIConnection(remote, user, password, verbose)
+				db = sqlite3.connect(database)
+				db.text_factory = str
+				c = db.cursor()
+				connection.connect()
+				connection.database = database
+				connection.stout = stout
+				#connection.bios()
+				psexec = psexecqueries.PSExecQuery(remote, user, password, verbose)
+				psexec.database = database
+				psexec.connectDB(c)
+				psexec.stout = stout
+				#psexec.arp()
+				psexec.setComputerName()
+				runSwitches(connection, psexec, dbcheck)
+		except netaddr.core.AddrFormatError:
+			print "Invalid network address"
+			sys.exit()
+			
+	#no remote IP
+	else:
+		connection = wmiqueries.WMIConnection(remote, user, password, verbose)
+		db = sqlite3.connect(database)
+		db.text_factory = str
+		c = db.cursor()
+		connection.connect(c)
+		connection.database = database
+		connection.stout = stout
+		psexec = psexecqueries.PSExecQuery(remote, user, password, verbose)
+		psexec.connectDB(c)
+		psexec.database = database
+		psexec.stout = stout
+		psexec.setComputerName()
+		runSwitches(connection, psexec, dbcheck)
+		db.commit()
+		db.close()
 		
-#no remote IP
-else:
-	connection = wmiqueries.WMIConnection(remote, user, password, verbose)
-	db = sqlite3.connect(database)
-	db.text_factory = str
-	c = db.cursor()
-	connection.connect(c)
-	connection.database = database
-	connection.stout = stout
-	psexec = psexecqueries.PSExecQuery(remote, user, password, verbose)
-	psexec.connectDB(c)
-	psexec.database = database
-	psexec.stout = stout
-	psexec.setComputerName()
-	runSwitches(connection, psexec, dbcheck)
-	db.commit()
-	db.close()
+if __name__ == "__main__":
+	main()

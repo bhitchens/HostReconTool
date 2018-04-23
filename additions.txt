@@ -19,3 +19,5 @@ Win32_NetworkClient
 Win32_BootConfiguration
 Win32_ScheduledJob
 schtasks query
+
+separate procesess, return 1, loop until right number has returned

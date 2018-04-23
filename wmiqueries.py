@@ -76,13 +76,11 @@ class WMIConnection:
 		
 	#enter data from wmi query into db
 	def dbEntry(self, itemList, uniqueList, name, dataList):
-		#try:
-		#create table
-		print '''\n\nCREATE TABLE ''' + name + ''' (ComputerName TEXT, ipAddr text,''' + (''' {} text,''' * len(itemList)).format(*itemList) +  '''unique (''' + uniqueList + '''))'''
-		self.c.execute('''CREATE TABLE ''' + name + ''' (ComputerName TEXT, ipAddr text,''' + (''' {} text,''' * len(itemList)).format(*itemList) +  '''unique (''' + uniqueList + '''))''')
-		#except sqlite3.OperationalError:
-		print "=============================" + name
-		#pass
+		try:
+			#create table
+			self.c.execute('''CREATE TABLE ''' + name + ''' (ComputerName TEXT, ipAddr text,''' + (''' {} text,''' * len(itemList)).format(*itemList) +  '''unique (''' + uniqueList + '''))''')
+		except sqlite3.OperationalError:
+			pass
 		try:
 			#for each object in the data list
 			for data in dataList:
@@ -90,7 +88,7 @@ class WMIConnection:
 				values = [computerName, ipAddr]
 				#for each potential element of the object, add it to the values list
 				for item in itemList:
-					values.append(self.check(data, item))
+					values.append(self.check(data, item.replace("__","")))
 				#enter the values into the db
 				self.c.execute('INSERT INTO ' + name + ' VALUES (?' + ', ?' * (len(values) - 1) + ')', values)
 		except sqlite3.IntegrityError:
@@ -211,68 +209,7 @@ class WMIConnection:
 		if (self.verbose): print "Fetching network adapter data"
 		adapters = self.w.Win32_NetworkAdapterConfiguration()
 		if self.database != "":
-			itemList = (
-			"Caption", 
-			"Description", 
-			"SettingID", 
-			"ArpAlwaysSourceRoute", 
-			"ArpUseEtherSNAP", 
-			"DatabasePath", 
-			"DeadGWDetectEnabled", 
-			"DefaultIPGateway", 
-			"DefaultTOS", 
-			"DefaultTTL", 
-			"DHCPEnabled", 
-			"DHCPLeaseExpires", 
-			"DHCPLeaseObtained", 
-			"DHCPServer", 
-			"DNSDomain", 
-			"DNSDomainSuffixSearchOrder", 
-			"DNSEnabledForWINSResolution", 
-			"DNSHostName", 
-			"DNSServerSearchOrder", 
-			"DomainDNSRegistrationEnabled", 
-			"ForwardBufferMemory", 
-			"FullDNSRegistrationEnabled", 
-			"GatewayCostMetric", 
-			"IGMPLevel", 
-			"Index", 
-			"InterfaceIndex", 
-			"IPAddress", 
-			"IPConnectionMetric", 
-			"IPEnabled", 
-			"IPFilterSecurityEnabled", 
-			"IPPortSecurityEnabled", 
-			"IPSecPermitIPProtocols", 
-			"IPSecPermitTCPPorts", 
-			"IPSecPermitUDPPorts", 
-			"IPSubnet", 
-			"IPUseZeroBroadcast", 
-			"IPXAddress", 
-			"IPXEnabled", 
-			"IPXFrameType", 
-			"IPXMediaType", 
-			"IPXNetworkNumber", 
-			"IPXVirtualNetNumber", 
-			"KeepAliveInterval", 
-			"KeepAliveTime", 
-			"MACAddress", 
-			"MTU", 
-			"NumForwardPackets", 
-			"PMTUBHDetectEnabled", 
-			"PMTUDiscoveryEnabled", 
-			"ServiceName", 
-			"TcpipNetbiosOptions", 
-			"TcpMaxConnectRetransmissions", 
-			"TcpMaxDataRetransmissions", 
-			"TcpNumConnections", 
-			"TcpUseRFC1122UrgentPointer", 
-			"TcpWindowSize", 
-			"WINSEnableLMHostsLookup", 
-			"WINSHostLookupFile", 
-			"WINSPrimaryServer", 
-			"WINSScopeID", 
-			"WINSSecondaryServer")
+			itemList = ("Caption", "Description", "SettingID", "ArpAlwaysSourceRoute", "ArpUseEtherSNAP", "DatabasePath", "DeadGWDetectEnabled", "DefaultIPGateway", "DefaultTOS", "DefaultTTL", "DHCPEnabled", "DHCPLeaseExpires", "DHCPLeaseObtained", "DHCPServer", "DNSDomain", "DNSDomainSuffixSearchOrder", "DNSEnabledForWINSResolution", "DNSHostName", "DNSServerSearchOrder", "DomainDNSRegistrationEnabled", "ForwardBufferMemory", "FullDNSRegistrationEnabled", "GatewayCostMetric", "IGMPLevel", "Index__", "InterfaceIndex", "IPAddress", "IPConnectionMetric", "IPEnabled", "IPFilterSecurityEnabled", "IPPortSecurityEnabled", "IPSecPermitIPProtocols", "IPSecPermitTCPPorts", "IPSecPermitUDPPorts", "IPSubnet", "IPUseZeroBroadcast", "IPXAddress", "IPXEnabled", "IPXFrameType", "IPXMediaType", "IPXNetworkNumber", "IPXVirtualNetNumber", "KeepAliveInterval", "KeepAliveTime", "MACAddress", "MTU", "NumForwardPackets", "PMTUBHDetectEnabled", "PMTUDiscoveryEnabled", "ServiceName", "TcpipNetbiosOptions", "TcpMaxConnectRetransmissions", "TcpMaxDataRetransmissions", "TcpNumConnections", "TcpUseRFC1122UrgentPointer", "TcpWindowSize", "WINSEnableLMHostsLookup", "WINSHostLookupFile", "WINSPrimaryServer", "WINSScopeID", "WINSSecondaryServer")
 			uniqueList = "ComputerName, ipAddr, MACAddress"
 			self.dbEntry(itemList, uniqueList, "network_adapters", adapters)
 		if self.stout:
@@ -297,7 +234,7 @@ class WMIConnection:
 		services = self.w.win32_Service()
 		if self.database != "":
 			itemList = ("AcceptPause", "AcceptStop", "Caption", "CheckPoint", "CreationClassName", "DelayedAutoStart", "Description", "DesktopInteract", "DisplayName", "ErrorControl", "ExitCode", "InstallDate", "Name", "PathName", "serviceId", "ServiceSpecificExitCode", "ServiceType", "Started", "StartMode", "StartName", "State", "Status", "SystemCreationClassName", "SystemName", "TagId", "WaitHint")
-			uniqueList = "ComputerName, ipAddr, ProcessId, Caption"
+			uniqueList = "ComputerName, ipAddr, serviceId, Caption"
 			self.dbEntry(itemList, uniqueList, "services", services)
 		if self.stout:
 			for service in services:
@@ -320,7 +257,7 @@ class WMIConnection:
 		if (self.verbose): print "Fetching physical disk data"
 		drives = self.w.Win32_DiskDrive()
 		if self.database != "":
-			itemList = ("Availability", "BytesPerSector", "Capabilities", "CapabilityDescriptions", "Caption", "CompressionMethod", "ConfigManagerErrorCode", "ConfigManagerUserConfig", "CreationClassName", "DefaultBlockSize", "Description", "DeviceID", "ErrorCleared", "ErrorDescription", "ErrorMethodology", "FirmwareRevision", "Index", "InstallDate", "InterfaceType", "LastErrorCode", "Manufacturer", "MaxBlockSize", "MaxMediaSize", "MediaLoaded", "MediaType", "MinBlockSize", "Model", "Name", "NeedsCleaning", "NumberOfMediaSupported", "Partitions", "PNPDeviceID", "PowerManagementCapabilities", "PowerManagementSupported", "SCSIBus", "SCSILogicalUnit", "SCSIPort", "SCSITargetId", "SectorsPerTrack", "SerialNumber", "Signature", "Size", "Status", "StatusInfo", "SystemCreationClassName", "SystemName", "TotalCylinders", "TotalHeads", "TotalSectors", "TotalTracks", "TracksPerCylinder")
+			itemList = ("Availability", "BytesPerSector", "Capabilities", "CapabilityDescriptions", "Caption", "CompressionMethod", "ConfigManagerErrorCode", "ConfigManagerUserConfig", "CreationClassName", "DefaultBlockSize", "Description", "DeviceID", "ErrorCleared", "ErrorDescription", "ErrorMethodology", "FirmwareRevision", "Index__", "InstallDate", "InterfaceType", "LastErrorCode", "Manufacturer", "MaxBlockSize", "MaxMediaSize", "MediaLoaded", "MediaType", "MinBlockSize", "Model", "Name", "NeedsCleaning", "NumberOfMediaSupported", "Partitions", "PNPDeviceID", "PowerManagementCapabilities", "PowerManagementSupported", "SCSIBus", "SCSILogicalUnit", "SCSIPort", "SCSITargetId", "SectorsPerTrack", "SerialNumber", "Signature", "Size", "Status", "StatusInfo", "SystemCreationClassName", "SystemName", "TotalCylinders", "TotalHeads", "TotalSectors", "TotalTracks", "TracksPerCylinder")
 			uniqueList = "ComputerName, ipAddr, DeviceID"
 			self.dbEntry(itemList, uniqueList, "physical_disks", drives)
 		if self.stout:
@@ -368,7 +305,7 @@ class WMIConnection:
 		if (self.verbose): print "Fetching PlugNPlay data"
 		pnp = self.w.Win32_PNPEntity()
 		if self.database != "":
-			itemList = (plug, "Availability", plug, "Caption", plug, "ClassGuid", plug, "CompatibleID", plug, "ConfigManagerErrorCode", plug, "ConfigManagerUserConfig", plug, "CreationClassName", plug, "Description", plug, "DeviceID", plug, "ErrorCleared", plug, "ErrorDescription", plug, "HardwareID", plug, "InstallDate", plug, "LastErrorCode", plug, "Manufacturer", plug, "Name", plug, "PNPClass", plug, "PNPDeviceID", plug, "PowerManagementCapabilities", plug, "PowerManagementSupported", plug, "Present", plug, "Service", plug, "Status", plug, "StatusInfo", plug, "SystemCreationClassName", plug, "SystemName")
+			itemList = ("Availability", "Caption", "ClassGuid", "CompatibleID", "ConfigManagerErrorCode", "ConfigManagerUserConfig", "CreationClassName", "Description", "DeviceID", "ErrorCleared", "ErrorDescription", "HardwareID", "InstallDate", "LastErrorCode", "Manufacturer", "Name", "PNPClass", "PNPDeviceID", "PowerManagementCapabilities", "PowerManagementSupported", "Present", "Service", "Status", "StatusInfo", "SystemCreationClassName", "SystemName")
 			uniqueList = "ComputerName, ipAddr, ClassGuid"
 			self.dbEntry(itemList, uniqueList, "plugnplay", pnp)
 		if self.stout:
