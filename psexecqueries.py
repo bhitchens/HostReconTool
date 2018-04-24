@@ -48,7 +48,6 @@ class PSExecQuery:
 		return proc.stdout.read().split('\n')
 		
 	def dbInsert(self, name, data):
-		print name
 		self.c.execute('INSERT INTO ' + name + ' VALUES (?' + ', ?' * (len(data) - 1) + ')', data)
 		
 	def all(self):

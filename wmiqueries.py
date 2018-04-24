@@ -48,7 +48,7 @@ class WMIConnection:
 	#use eval to access each attribute under a try/except paradigm	
 	def check(self, obj, attrib):
 		try:
-			return str(eval("obj." + attrib))
+			return (eval("obj." + attrib)).encode('utf-8')
 		except AttributeError:
 			return "NO RESULT"
 			

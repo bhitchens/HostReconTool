@@ -15,7 +15,7 @@ def runSwitches(connection, psexec, dbcheck):
 	if "-A" in sys.argv or "--all" in sys.argv:
 		connection.all()
 		psexec.all()
-		sys.exit()
+		return
 	i = 1
 	
 	#boolean for checking if sysData has already run
@@ -111,6 +111,7 @@ def runSwitches(connection, psexec, dbcheck):
 		else:
 			print "Error: unrecognized switch " + arg
 			sys.exit()
+	print "switches done"
 	return
 	
 
@@ -142,6 +143,30 @@ def testPsexQuery():
 #testWMIQuery()
 #testPsexQuery()
 #sys.exit()
+
+def analize(ipaddr, user, password, verbose, database, dbcheck, stout):
+	remote = ipaddr
+	connection = wmiqueries.WMIConnection(remote, user, password, verbose)
+	db = sqlite3.connect(database)
+	db.text_factory = str
+	c = db.cursor()
+	connection.connect(c)
+	connection.database = database
+	connection.stout = stout
+	#connection.bios()
+	psexec = psexecqueries.PSExecQuery(remote, user, password, verbose)
+	psexec.database = database
+	psexec.connectDB(c)
+	psexec.stout = stout
+	#psexec.arp()
+	psexec.setComputerName()
+	print '00000000000000000000000000000000000000000000'
+	runSwitches(connection, psexec, dbcheck)
+	print '111111111111111111111111111111111'
+	db.commit()
+	print '2222222222222222222222222222222222'
+	db.close()
+	print '33333333333333333333333333333333333'
 
 #main function
 def main():
@@ -290,7 +315,8 @@ def main():
 			
 	#no remote IP
 	else:
-		connection = wmiqueries.WMIConnection(remote, user, password, verbose)
+		Process(target=analize, args=(remote, user, password, verbose, database, dbcheck, stout)).start()
+		'''connection = wmiqueries.WMIConnection(remote, user, password, verbose)
 		db = sqlite3.connect(database)
 		db.text_factory = str
 		c = db.cursor()
@@ -303,8 +329,7 @@ def main():
 		psexec.stout = stout
 		psexec.setComputerName()
 		runSwitches(connection, psexec, dbcheck)
-		db.commit()
-		db.close()
+		'''
 		
 if __name__ == "__main__":
 	main()
