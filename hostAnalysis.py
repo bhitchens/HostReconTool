@@ -5,7 +5,7 @@ import sys, netaddr, wmiqueries, psexecqueries, sqlite3, argparse
 lock = Lock()
 
 #Process provided switches; passed WMI connection
-def runSwitches(connection, psexec, dbcheck, args):		
+def runSwitches(connection, psexec, database, args):		
 
 	#check new functions
 	#psexec.route()
@@ -17,14 +17,16 @@ def runSwitches(connection, psexec, dbcheck, args):
 		psexec.all()
 		return
 	i = 1
-	
-	#boolean for checking if sysData has already run
-	#sysDataComplete = False
-	if dbcheck:
+
+	#If using a database, run sysdata to get computer name
+	if database != "":
 		connection.sysData()
 		computerName = connection.getComputerName()
+	#Otherwise only run sysdata if the sysinfo flag is supplied
 	elif args.sysinfo:
 		connection.sysData()
+		
+	#Run functions for all supplied flags
 	if (args.users): connection.userData()
 	if (args.netlogin): connection.netLogin()
 	if (args.groups): connection.groupData()
@@ -78,23 +80,35 @@ def testPsexQuery():
 #testPsexQuery()
 #sys.exit()
 
-def analize(ipaddr, user, password, verbose, database, dbcheck, stout, args):
-	remote = ipaddr
-	connection = wmiqueries.WMIConnection(remote, user, password, verbose)
-	db = sqlite3.connect(database)
-	db.text_factory = str
-	c = db.cursor()
-	connection.connect(c)
+#Sets up connections and triggers runSwitches
+def analize(ipaddr, user, password, verbose, database, stout, args):
+	#Create wmi object and set its database name and stout boolean
+	connection = wmiqueries.WMIConnection(ipaddr, user, password, verbose)	
 	connection.database = database
 	connection.stout = stout
-	psexec = psexecqueries.PSExecQuery(remote, user, password, verbose)
+	connection.connect()
+	
+	#create psexec object and set its database name, stout boolean, and computer name
+	psexec = psexecqueries.PSExecQuery(ipaddr, user, password, verbose)
 	psexec.database = database
-	psexec.connectDB(c)
 	psexec.stout = stout
 	psexec.setComputerName()
-	runSwitches(connection, psexec, dbcheck, args)
-	db.commit()
-	db.close()
+	
+	#if a DB is being used, create it and pass the cursor to the WMI and psexec objects
+	if (database != ""):
+		db = sqlite3.connect(database)
+		db.text_factory = str
+		c = db.cursor()	
+		connection.connectDB(c)	
+		psexec.connectDB(c)
+	
+	#Run functions based on switches
+	runSwitches(connection, psexec, database, args)
+	
+	#if a DB is being used, commit values and close the DB
+	if (database != ""):
+		db.commit()
+		db.close()
 
 #main function
 def main():
@@ -102,16 +116,13 @@ def main():
 	reload(sys)
 	sys.setdefaultencoding('utf-8')
 
-	computerName = ""
-		
 	user = ""
 	password = ""
-
-	remote = ""
 	database = ""
 	stout = False
 	verbose = False
 
+	#parse arguments
 	parser = argparse.ArgumentParser(description='Gather host data.')
 	parser.add_argument("-d", "--db", nargs=1, help="Provide database name or full path to specify location")
 	parser.add_argument("-o", "--stout", action='store_true', help="Send results to Standard Out")
@@ -120,6 +131,7 @@ def main():
 	parser.add_argument("--username", action='store_true', help="User Name for remote system (must be used with -r)")
 	parser.add_argument("--password", action='store_true', help="Password for remote system (must be used with -r and -u)")
 	parser.add_argument("-A", "--all", action='store_true', help="Run all switches")
+	parser.add_argument("-y", "--sysinfo", action='store_true', help="Gather System Information")
 	parser.add_argument("-u", "--users", action='store_true', help="User account data")
 	parser.add_argument("-n", "--netlogin", action='store_true', help="Network Login data")
 	parser.add_argument("-g", "--groups", action='store_true', help="Group data")
@@ -143,9 +155,6 @@ def main():
 	parser.add_argument("--drivers", action='store_true', help="Drivers Data")
 	
 	args = parser.parse_args()
-
-	#boolean for supplied database
-	dbcheck = False
 		
 	#check for -d switch
 	if (args.db):
@@ -157,7 +166,7 @@ def main():
 		stout = True
 	
 	#Confirm that either db stout are selected
-	if ((not dbcheck) and (not stout)):
+	if ((database == "") and (not stout)):
 		print "Either -d or --db with database name or -o or --stout is required."
 		sys.exit()
 				
@@ -191,14 +200,14 @@ def main():
 	if ip != "":
 		try:
 			for ipaddr in IPNetwork(ip):
-				Process(target=analize, args=(ipaddr, user, password, verbose, database, dbcheck, stout, args)).start()
+				Process(target=analize, args=(ipaddr, user, password, verbose, database, stout, args)).start()
 		except netaddr.core.AddrFormatError:
 			print "Invalid network address"
 			sys.exit()
 			
 	#no remote IP
 	else:
-		Process(target=analize, args=(remote, user, password, verbose, database, dbcheck, stout, args)).start()
+		Process(target=analize, args=("", user, password, verbose, database, stout, args)).start()
 		
 if __name__ == "__main__":
 	main()

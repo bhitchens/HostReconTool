@@ -22,7 +22,7 @@ class WMIConnection:
 			ipAddr = socket.gethostbyname(socket.gethostname())
 		
 	#make a WMI connection with a non-standard namespace
-	def connect(self, cursor, namespace):
+	def connect(self, namespace):
 		if self.password != "":
 			self.w = wmi.WMI(self.remote, user=self.user, password=self.password, namespace=mNamespace)
 		elif self.user != "":
@@ -31,10 +31,9 @@ class WMIConnection:
 			self.w = wmi.WMI(self.remote, namespace=mNamespace)
 		else:
 			self.w = wmi.WMI(namespace=mNamespace)
-		self.c = cursor
 
 	#make a WMI connection with the standard namespace
-	def connect(self, cursor):
+	def connect(self):
 		if self.password != "":
 			self.w = wmi.WMI(self.remote, user=self.user, password=self.password)
 		elif self.user != "":
@@ -43,6 +42,9 @@ class WMIConnection:
 			self.w = wmi.WMI(self.remote)
 		else:
 			self.w = wmi.WMI()
+		
+	#connect the DB cursor
+	def connectDB(self, cursor):
 		self.c = cursor
 	
 	#use eval to access each attribute under a try/except paradigm	
