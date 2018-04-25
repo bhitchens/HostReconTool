@@ -176,7 +176,7 @@ def main():
 	#check for remote IP address switch
 	ip = ""	
 	if (args.ipaddr):
-		ip = args.ipaddr
+		ip = args.ipaddr[0]
 	elif (user != ""):
 		print "Username may only be provided with an ip address."
 		sys.exit()
