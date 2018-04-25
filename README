@@ -6,28 +6,42 @@ pywin32: https://pypi.python.org/pypi/pywin32
 python WMI: https://pypi.python.org/pypi/WMI/
 netaddr: https://pypi.python.org/pypi/netaddr
 
-Run hostAnalysis.py with desired switches.
+Run HRT.py with desired switches.
 
 If run run without -r or --remote, the program will run the provided switches on the local system. If run with 
 -r or --remote, ensure you run the command line with an account that has permission to run WMI on the remote 
-system. The system data WMI command is run automatically.
+system. The system data WMI command is run automatically if a database is selected.
 
--h or --help:           This help text
--d or --db:             Provide database name or full path to specify location
--o or --stout:          Send results to Standard Out
--i or --remote:         IP Address or CIDR-Notation range of IP Addresses. Exclude for Local Machine
--A or --all:            Run all switches
--u or --users:          User account data
--n or --netlogin:       Network Login data
--g or --groups:         Group data
--l or --ldisks:         Logical Disk data
--t or --timezone:       Timezone data
--s or --startup:        Startup Program data
--p or --profiles:       User Profiles data
--a or --adapters:       Netork Adapter data
--P or --process:        Processes data
--S or --services:       Services data
--r or --shares:         Shared Resources data
--D or --pdisks:         Physical Disk data
--m or --memory:         Physical Memory data
--y or --sysinfo:		System Info
+The script must be run with administrator priviledges. For remote targets, it must be run with an account with 
+administrator priviledges on the remote target, and the remote target must have WMI queries and SMB allowed.
+
+  -h, --help            show help message and exit
+  -d DB, --db DB        Provide database name or full path to specify location
+  -o, --stout           Send results to Standard Out
+  --verbose             Print verbose results
+  -i IP, --ipaddr IP	IP Address or CIDR-Notation range of IP Addresses. Exclude for Local Machine
+  --username            User Name for remote system (must be used with -r)
+  --password            Password for remote system (must be used with -r and -u)
+  -A, --all             Run all switches
+  -y, --sysinfo         Gather System Information
+  -u, --users           User account data
+  -n, --netlogin        Network Login data
+  -g, --groups          Group data
+  -l, --ldisks          Logical Disk data
+  -t, --timezone        Timezone data
+  -s, --startup         Startup Program data
+  --profiles            User Profiles data
+  -a, --adapters        Netork Adapter data
+  -P, --process         Processes data
+  -S, --services        Services data
+  -r, --shares          Shared Resources data
+  -D, --pdisks          Physical Disk data
+  -m, --memory          Physical Memory data
+  -p, --ports           Open Ports
+  --patches             Currently Applied Patches
+  --arp                 Arp Table Data
+  --routes              Routing Table Data
+  -w, --wireless        Wireless Connection Data
+  -b, --bios            BIOS Data
+  --pnp                 Plug-n-play Devices Data
+  --drivers             Drivers Data
