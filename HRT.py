@@ -82,33 +82,36 @@ def testPsexQuery():
 
 #Sets up connections and triggers runSwitches
 def analize(ipaddr, user, password, verbose, database, stout, args):
-	#Create wmi object and set its database name and stout boolean
-	connection = wmiqueries.WMIConnection(ipaddr, user, password, verbose)	
-	connection.database = database
-	connection.stout = stout
-	connection.connect()
-	
-	#create psexec object and set its database name, stout boolean, and computer name
-	psexec = psexecqueries.PSExecQuery(ipaddr, user, password, verbose)
-	psexec.database = database
-	psexec.stout = stout
-	psexec.setComputerName()
-	
-	#if a DB is being used, create it and pass the cursor to the WMI and psexec objects
-	if (database != ""):
-		db = sqlite3.connect(database)
-		db.text_factory = str
-		c = db.cursor()	
-		connection.connectDB(c)	
-		psexec.connectDB(c)
-	
-	#Run functions based on switches
-	runSwitches(connection, psexec, database, args)
-	
-	#if a DB is being used, commit values and close the DB
-	if (database != ""):
-		db.commit()
-		db.close()
+	try:
+		#Create wmi object and set its database name and stout boolean
+		connection = wmiqueries.WMIConnection(ipaddr, user, password, verbose)	
+		connection.database = database
+		connection.stout = stout
+		connection.connect()
+		
+		#create psexec object and set its database name, stout boolean, and computer name
+		psexec = psexecqueries.PSExecQuery(ipaddr, user, password, verbose)
+		psexec.database = database
+		psexec.stout = stout
+		psexec.setComputerName()
+		
+		#if a DB is being used, create it and pass the cursor to the WMI and psexec objects
+		if (database != ""):
+			db = sqlite3.connect(database)
+			db.text_factory = str
+			c = db.cursor()	
+			connection.connectDB(c)	
+			psexec.connectDB(c)
+		
+		#Run functions based on switches
+		runSwitches(connection, psexec, database, args)
+		
+		#if a DB is being used, commit values and close the DB
+		if (database != ""):
+			db.commit()
+			db.close()
+	except Exception:
+		print "Failed to connect to " + str(ipaddr)
 
 #main function
 def main():
@@ -128,8 +131,8 @@ def main():
 	parser.add_argument("-o", "--stout", action='store_true', help="Send results to Standard Out")
 	parser.add_argument("--verbose", action='store_true', help="Print verbose results")
 	parser.add_argument("-i", "--ipaddr", nargs=1, help="IP Address or CIDR-Notation range of IP Addresses. Exclude for Local Machine")
-	parser.add_argument("--username", action='store_true', help="User Name for remote system (must be used with -r)")
-	parser.add_argument("--password", action='store_true', help="Password for remote system (must be used with -r and -u)")
+	parser.add_argument("--username", nargs=1, help="User Name for remote system (must be used with -r)")
+	parser.add_argument("--password", nargs=1, help="Password for remote system (must be used with -r and -u)")
 	parser.add_argument("-A", "--all", action='store_true', help="Run all switches")
 	parser.add_argument("-y", "--sysinfo", action='store_true', help="Gather System Information")
 	parser.add_argument("-u", "--users", action='store_true', help="User account data")
