@@ -72,25 +72,28 @@ class PSExecQuery:
 				pass	
 			while i < len(results) - 1:
 				splitLine = results[i].split()
-				local = splitLine[1].replace("::", ";;").split(':')
-				localIP = ""						
-				foreign = splitLine[2].replace("::",";;").split(':')
-				i += 1
-				owner = ""
-				if "TIME_WAIT" not in results[i-1]:
-					owner = results[i].strip()
+				if len(splitline) < 3:
 					i += 1
-					if results[i].split()[0][0] == '[':
-						owner += ' ' + results[i].strip()
-						i += 1
-				if splitLine[0] == "TCP":
-					portsData = (computerName, ipAddr, splitLine[0], local[0].replace(";;", "::"), local[1], foreign[0].replace(";;", "::"), foreign[1], splitLine[3], splitLine[4], owner)
 				else:
-					portsData = (computerName, ipAddr, splitLine[0], local[0].replace(";;", "::"), local[1], foreign[0].replace(";;", "::"), foreign[1], "", splitLine[3], owner)
-				try:
-					self.dbInsert("open_ports", portsData)
-				except sqlite3.IntegrityError:
-					pass		
+					local = splitLine[1].replace("::", ";;").split(':')
+					localIP = ""						
+					foreign = splitLine[2].replace("::",";;").split(':')
+					i += 1
+					owner = ""
+					if "TIME_WAIT" not in results[i-1]:
+						owner = results[i].strip()
+						i += 1
+						if results[i].split()[0][0] == '[':
+							owner += ' ' + results[i].strip()
+							i += 1
+					if splitLine[0] == "TCP":
+						portsData = (computerName, ipAddr, splitLine[0], local[0].replace(";;", "::"), local[1], foreign[0].replace(";;", "::"), foreign[1], splitLine[3], splitLine[4], owner)
+					else:
+						portsData = (computerName, ipAddr, splitLine[0], local[0].replace(";;", "::"), local[1], foreign[0].replace(";;", "::"), foreign[1], "", splitLine[3], owner)
+					try:
+						self.dbInsert("open_ports", portsData)
+					except sqlite3.IntegrityError:
+						pass		
 		if self.stout:
 			print results
 			#while j < len(results):
