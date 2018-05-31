@@ -32,16 +32,16 @@ class PSExecQuery:
 		#TODO: should receive stderr and check for success/failure
 		FNULL = open(os.devnull, 'w')
 		if self.password != "":
-			list = ["psexec.exe", "-AcceptEULA", "\\\\" + str(ipAddr), "-h", "-u", self.user, "-p", self.password] + command.split(" ")
+			list = ["psexec.exe", "-AcceptEULA", "-nobanner", "\\\\" + str(ipAddr), "-h", "-u", self.user, "-p", self.password] + command.split(" ")
 			proc = subprocess.Popen(list, stdout=subprocess.PIPE, stderr=FNULL)
 			FNULL.close()
 			return proc.stdout.read().split('\n')
 		elif self.user != "":
-			list = ["psexec.exe", "-AcceptEULA", "\\\\" + str(ipAddr), "-h", "-u", self.user] + command.split(" ")
+			list = ["psexec.exe", "-AcceptEULA", "-nobanner", "\\\\" + str(ipAddr), "-h", "-u", self.user] + command.split(" ")
 			proc = subprocess.Popen(list, stdout=subprocess.PIPE, stderr=FNULL)
 			FNULL.close()
 			return proc.stdout.read().split('\n')
-		list = ["psexec.exe", "-AcceptEULA", "\\\\" + str(ipAddr), "-h"] + command.split(" ")
+		list = ["psexec.exe", "-AcceptEULA", "-nobanner", "\\\\" + str(ipAddr), "-h"] + command.split(" ")
 		FNULL = open(os.devnull, 'w')
 		proc = subprocess.Popen(list, stdout=subprocess.PIPE, stderr=FNULL)
 		FNULL.close()		
@@ -72,7 +72,7 @@ class PSExecQuery:
 				pass	
 			while i < len(results) - 1:
 				splitLine = results[i].split()
-				if len(splitline) < 3:
+				if len(splitLine) < 3:
 					i += 1
 				else:
 					local = splitLine[1].replace("::", ";;").split(':')
