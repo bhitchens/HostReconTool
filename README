@@ -1,4 +1,4 @@
-Fjer Host Analysis Tool
+Host Recon Tool
 
 Dependencies:
 Python 2.7
@@ -8,12 +8,10 @@ netaddr: https://pypi.python.org/pypi/netaddr
 
 Run HRT.py with desired switches.
 
-If run run without -r or --remote, the program will run the provided switches on the local system. If run with 
--r or --remote, ensure you run the command line with an account that has permission to run WMI on the remote 
-system. The system data WMI command is run automatically if a database is selected.
-
-The script must be run with administrator priviledges. For remote targets, it must be run with an account with 
-administrator priviledges on the remote target, and the remote target must have WMI queries and SMB allowed.
+If run run without -r or --remote, the program will run the provided switches on the local system. The 
+script must be run with administrator priviledges. For remote targets, it must be run with an account 
+with administrator priviledges on the remote target, and the remote target must have WMI queries and 
+SMB allowed.
 
   -h, --help            show help message and exit
   -d DB, --db DB        Provide database name or full path to specify location
