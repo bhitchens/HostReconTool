@@ -50,6 +50,8 @@ class WMIConnection:
 	#use eval to access each attribute under a try/except paradigm	
 	def check(self, obj, attrib):
 		try:
+			return str(eval("obj." + attrib))
+		except UnicodeEncodeError:
 			return (eval("obj." + attrib)).encode('utf-8')
 		except AttributeError:
 			return "NO RESULT"
@@ -83,9 +85,9 @@ class WMIConnection:
 			self.c.execute('''CREATE TABLE ''' + name + ''' (ComputerName TEXT, ipAddr text,''' + (''' {} text,''' * len(itemList)).format(*itemList) +  '''unique (''' + uniqueList + '''))''')
 		except sqlite3.OperationalError:
 			pass
-		try:
-			#for each object in the data list
-			for data in dataList:
+		#for each object in the data list
+		for data in dataList:
+			try:
 				#initial values for all table entries
 				values = [computerName, ipAddr]
 				#for each potential element of the object, add it to the values list
@@ -93,8 +95,8 @@ class WMIConnection:
 					values.append(self.check(data, item.replace("__","")))
 				#enter the values into the db
 				self.c.execute('INSERT INTO ' + name + ' VALUES (?' + ', ?' * (len(values) - 1) + ')', values)
-		except sqlite3.IntegrityError:
-			pass
+			except sqlite3.IntegrityError:
+				pass
 
 	#comments on this method apply to the other WMI methods
 	def sysData(self):
@@ -224,8 +226,9 @@ class WMIConnection:
 		processes = self.w.win32_process()
 		if self.database != "":
 			itemList = ("CreationClassName", "Caption", "CommandLine", "CreationDate", "CSCreationClassName", "CSName", "Description", "ExecutablePath", "ExecutionState", "Handle", "HandleCount", "InstallDate", "KernelModeTime", "MaximumWorkingSetSize", "MinimumWorkingSetSize", "Name", "OSCreationClassName", "OSName", "OtherOperationCount", "OtherTransferCount", "PageFaults", "PageFileUsage", "ParentProcessId", "PeakPageFileUsage", "PeakVirtualSize", "PeakWorkingSetSize", "Priority", "PrivatePageCount", "ProcessId", "QuotaNonPagedPoolUsage", "QuotaPagedPoolUsage", "QuotaPeakNonPagedPoolUsage", "QuotaPeakPagedPoolUsage", "ReadOperationCount", "ReadTransferCount", "SessionId", "Status", "TerminationDate", "ThreadCount", "UserModeTime", "VirtualSize", "WindowsVersion", "WorkingSetSize", "WriteOperationCount", "WriteTransferCount")
-			uniqueList = "ComputerName, ipAddr, ProcessId"
+			uniqueList = "ComputerName, ipAddr, SessionId, ProcessId"
 			self.dbEntry(itemList, uniqueList, "processes", processes)
+			
 		if self.stout:
 			for process in processes:
 				print process
