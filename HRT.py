@@ -94,21 +94,21 @@ def analyze(ipaddr, verbose, database, stout, args):
 	except Exception:
 		print "Failed to make psexec connection to " + str(ipaddr)
 		
-		#if a DB is being used, create it and pass the cursor to the WMI and psexec objects
-		if (database != ""):
-			db = sqlite3.connect(database)
-			db.text_factory = str
-			c = db.cursor()	
-			connection.connectDB(c)	
-			psexec.connectDB(c)
-		
-		#Run functions based on switches
-		runSwitches(connection, psexec, database, args)
-		
-		#if a DB is being used, commit values and close the DB
-		if (database != ""):
-			db.commit()
-			db.close()
+	#if a DB is being used, create it and pass the cursor to the WMI and psexec objects
+	if (database != ""):
+		db = sqlite3.connect(database)
+		db.text_factory = str
+		c = db.cursor()	
+		connection.connectDB(c)	
+		psexec.connectDB(c)
+	
+	#Run functions based on switches
+	runSwitches(connection, psexec, database, args)
+	
+	#if a DB is being used, commit values and close the DB
+	if (database != ""):
+		db.commit()
+		db.close()
 	
 
 #main function
