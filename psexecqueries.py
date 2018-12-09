@@ -7,10 +7,8 @@ class PSExecQuery:
 	computerName = ""
 	stout = False
 	
-	def __init__(self, remote, user, password, verbose):
+	def __init__(self, remote, verbose):
 		self.remote = remote
-		self.user = user
-		self.password = password
 		self.w = None
 		self.verbose = verbose
 		global ipAddr
@@ -31,16 +29,6 @@ class PSExecQuery:
 	def psexec(self, command):
 		#TODO: should receive stderr and check for success/failure
 		FNULL = open(os.devnull, 'w')
-		if self.password != "":
-			list = ["psexec.exe", "-AcceptEULA", "-nobanner", "\\\\" + str(ipAddr), "-h", "-u", self.user, "-p", self.password] + command.split(" ")
-			proc = subprocess.Popen(list, stdout=subprocess.PIPE, stderr=FNULL)
-			FNULL.close()
-			return proc.stdout.read().split('\n')
-		elif self.user != "":
-			list = ["psexec.exe", "-AcceptEULA", "-nobanner", "\\\\" + str(ipAddr), "-h", "-u", self.user] + command.split(" ")
-			proc = subprocess.Popen(list, stdout=subprocess.PIPE, stderr=FNULL)
-			FNULL.close()
-			return proc.stdout.read().split('\n')
 		list = ["psexec.exe", "-AcceptEULA", "-nobanner", "\\\\" + str(ipAddr), "-h"] + command.split(" ")
 		FNULL = open(os.devnull, 'w')
 		proc = subprocess.Popen(list, stdout=subprocess.PIPE, stderr=FNULL)
@@ -96,9 +84,6 @@ class PSExecQuery:
 						pass		
 		if self.stout:
 			print results
-			#while j < len(results):
-				#j += 1
-	
 				
 	def route(self):
 		global computerName

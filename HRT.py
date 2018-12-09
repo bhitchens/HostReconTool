@@ -81,19 +81,25 @@ def testPsexQuery():
 #sys.exit()
 
 #Sets up connections and triggers runSwitches
-def analize(ipaddr, user, password, verbose, database, stout, args):
+def analize(ipaddr, verbose, database, stout, args):
 	try:
 		#Create wmi object and set its database name and stout boolean
-		connection = wmiqueries.WMIConnection(ipaddr, user, password, verbose)	
+		connection = wmiqueries.WMIConnection(ipaddr, verbose)	
 		connection.database = database
 		connection.stout = stout
-		connection.connect()
+		connection.connect()		
+	except Exception:
+		print "Failed to make WMI connection to " + str(ipaddr)
+		sys.exit()
 		
+	try:	
 		#create psexec object and set its database name, stout boolean, and computer name
-		psexec = psexecqueries.PSExecQuery(ipaddr, user, password, verbose)
+		psexec = psexecqueries.PSExecQuery(ipaddr, verbose)
 		psexec.database = database
 		psexec.stout = stout
 		psexec.setComputerName()
+	except Exception:
+		print "Failed to make psexec connection to " + str(ipaddr)
 		
 		#if a DB is being used, create it and pass the cursor to the WMI and psexec objects
 		if (database != ""):
@@ -110,8 +116,7 @@ def analize(ipaddr, user, password, verbose, database, stout, args):
 		if (database != ""):
 			db.commit()
 			db.close()
-	except Exception:
-		print "Failed to connect to " + str(ipaddr)
+	
 
 #main function
 def main():
@@ -119,8 +124,6 @@ def main():
 	reload(sys)
 	sys.setdefaultencoding('utf-8')
 
-	user = ""
-	password = ""
 	database = ""
 	stout = False
 	verbose = False
@@ -131,8 +134,8 @@ def main():
 	parser.add_argument("-o", "--stout", action='store_true', help="Send results to Standard Out")
 	parser.add_argument("--verbose", action='store_true', help="Print verbose results")
 	parser.add_argument("-i", "--ipaddr", nargs=1, help="IP Address or CIDR-Notation range of IP Addresses. Exclude for Local Machine")
-	parser.add_argument("--username", nargs=1, help="User Name for remote system (must be used with -r)")
-	parser.add_argument("--password", nargs=1, help="Password for remote system (must be used with -r and -u)")
+	parser.add_argument("--username", nargs=1, help="User Name for remote system (must be used with -i)")
+	parser.add_argument("--password", nargs=1, help="Password for remote system (must be used with -i and -u)")
 	parser.add_argument("-A", "--all", action='store_true', help="Run all switches")
 	parser.add_argument("-y", "--sysinfo", action='store_true', help="Gather System Information")
 	parser.add_argument("-u", "--users", action='store_true', help="User account data")
@@ -172,26 +175,11 @@ def main():
 	if ((database == "") and (not stout)):
 		print "Either -d or --db with database name or -o or --stout is required."
 		sys.exit()
-				
-	#check for user name
-	if (args.username):
-		user = args.username
-		
-	#check for password
-	if (user != ""):
-		if (args.password):
-			password = args.password
-	elif (args.password):
-		print "Password may only be supplied with username."
-		sys.exit()
 
 	#check for remote IP address switch
 	ip = ""	
 	if (args.ipaddr):
 		ip = args.ipaddr[0]
-	elif (user != ""):
-		print "Username may only be provided with an ip address."
-		sys.exit()
 	else:
 		print "No remote address, running on local machine."
 			
@@ -203,14 +191,14 @@ def main():
 	if ip != "":
 		try:
 			for ipaddr in IPNetwork(ip):
-				Process(target=analize, args=(ipaddr, user, password, verbose, database, stout, args)).start()
+				Process(target=analize, args=(ipaddr, verbose, database, stout, args)).start()
 		except netaddr.core.AddrFormatError:
 			print "Invalid network address"
 			sys.exit()
 			
 	#no remote IP
 	else:
-		Process(target=analize, args=("", user, password, verbose, database, stout, args)).start()
+		Process(target=analize, args=("", verbose, database, stout, args)).start()
 		
 if __name__ == "__main__":
 	main()

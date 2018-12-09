@@ -7,10 +7,8 @@ class WMIConnection:
 	computerName = ""
 	stout = False
 	
-	def __init__(self, remote, user, password, verbose):
+	def __init__(self, remote, verbose):
 		self.remote = remote
-		self.user = user
-		self.password = password
 		self.w = None
 		self.verbose = verbose
 		global ipAddr
@@ -23,22 +21,14 @@ class WMIConnection:
 		
 	#make a WMI connection with a non-standard namespace
 	def connect(self, namespace):
-		if self.password != "":
-			self.w = wmi.WMI(self.remote, user=self.user, password=self.password, namespace=mNamespace)
-		elif self.user != "":
-			self.w = wmi.WMI(self.remote, user=self.user, namespace=mNamespace)
-		elif self.remote != "":
+		if self.remote != "":
 			self.w = wmi.WMI(self.remote, namespace=mNamespace)
 		else:
 			self.w = wmi.WMI(namespace=mNamespace)
 
 	#make a WMI connection with the standard namespace
 	def connect(self):
-		if self.password != "":
-			self.w = wmi.WMI(self.remote, user=self.user, password=self.password)
-		elif self.user != "":
-			self.w = wmi.WMI(self.remote, user=self.user)
-		elif self.remote != "":
+		if self.remote != "":
 			self.w = wmi.WMI(self.remote)
 		else:
 			self.w = wmi.WMI()
