@@ -1,22 +1,15 @@
 from netaddr import IPNetwork
-from multiprocessing import Process, Lock
+from multiprocessing import Process
 import sys, netaddr, wmiqueries, psexecqueries, sqlite3, argparse
-
-lock = Lock()
 
 #Process provided switches; passed WMI connection
 def runSwitches(connection, psexec, database, args):		
-
-	#check new functions
-	#psexec.route()
-	#sys.exit()
 
 	#check for -A/--all
 	if "-A" in sys.argv or "--all" in sys.argv:
 		connection.all()
 		psexec.all()
 		return
-	i = 1
 
 	#If using a database, run sysdata to get computer name
 	if database != "":
@@ -81,7 +74,7 @@ def testPsexQuery():
 #sys.exit()
 
 #Sets up connections and triggers runSwitches
-def analize(ipaddr, verbose, database, stout, args):
+def analyze(ipaddr, verbose, database, stout, args):
 	try:
 		#Create wmi object and set its database name and stout boolean
 		connection = wmiqueries.WMIConnection(ipaddr, verbose)	
@@ -191,14 +184,14 @@ def main():
 	if ip != "":
 		try:
 			for ipaddr in IPNetwork(ip):
-				Process(target=analize, args=(ipaddr, verbose, database, stout, args)).start()
+				Process(target=analyze, args=(ipaddr, verbose, database, stout, args)).start()
 		except netaddr.core.AddrFormatError:
 			print "Invalid network address"
 			sys.exit()
 			
 	#no remote IP
 	else:
-		Process(target=analize, args=("", verbose, database, stout, args)).start()
+		Process(target=analyze, args=("", verbose, database, stout, args)).start()
 		
 if __name__ == "__main__":
 	main()
