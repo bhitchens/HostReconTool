@@ -1,5 +1,5 @@
 from netaddr import IPNetwork
-from multiprocessing import Process
+from multiprocessing import Process, Lock
 import sys, netaddr, wmiqueries, psexecqueries, sqlite3, argparse
 
 #Process provided switches; passed WMI connection
@@ -74,42 +74,52 @@ def testPsexQuery():
 #sys.exit()
 
 #Sets up connections and triggers runSwitches
-def analyze(ipaddr, verbose, database, stout, args):
+def analyze(ipaddr, verbose, database, stout, args, lock):
+	lock.acquire()
+	if ipaddr == "":
+		print "Starting localhost."
+	else:
+		print "Starting " + str(ipaddr) + "."
+	lock.release()
 	try:
 		#Create wmi object and set its database name and stout boolean
-		connection = wmiqueries.WMIConnection(ipaddr, verbose)	
+		connection = wmiqueries.WMIConnection(ipaddr, verbose, lock, database)	
 		connection.database = database
 		connection.stout = stout
 		connection.connect()		
 	except Exception:
-		print "Failed to make WMI connection to " + str(ipaddr)
+		lock.acquire()
+		if ipaddr == "":
+			print "Failed to make WMI connection to localhost"
+		else:
+			print "Failed to make WMI connection to " + str(ipaddr)
+		lock.release()
 		sys.exit()
 		
 	try:	
 		#create psexec object and set its database name, stout boolean, and computer name
-		psexec = psexecqueries.PSExecQuery(ipaddr, verbose)
+		psexec = psexecqueries.PSExecQuery(ipaddr, verbose, lock, database)
 		psexec.database = database
 		psexec.stout = stout
 		psexec.setComputerName()
 	except Exception:
-		print "Failed to make psexec connection to " + str(ipaddr)
-		
-	#if a DB is being used, create it and pass the cursor to the WMI and psexec objects
-	if (database != ""):
-		db = sqlite3.connect(database)
-		db.text_factory = str
-		c = db.cursor()	
-		connection.connectDB(c)	
-		psexec.connectDB(c)
+		lock.acquire()
+		if ipaddr == "":
+			print "Failed to make psexec connection to localhost"
+		else:
+			print "Failed to make psexec connection to " + str(ipaddr)
+		lock.release()
+		sys.exit()
 	
 	#Run functions based on switches
 	runSwitches(connection, psexec, database, args)
-	
-	#if a DB is being used, commit values and close the DB
-	if (database != ""):
-		db.commit()
-		db.close()
-	
+		
+	lock.acquire()
+	if ipaddr == "":
+		print "localhost complete."
+	else:
+		print str(ipaddr) + " complete."
+	lock.release()
 
 #main function
 def main():
@@ -147,7 +157,7 @@ def main():
 	parser.add_argument("-p", "--ports", action='store_true', help="Open Ports")
 	parser.add_argument("--patches", action='store_true', help="Currently Applied Patches")
 	parser.add_argument("--arp", action='store_true', help="Arp Table Data")
-	parser.add_argument("--routes", action='store_true', help="Routing Table Data")
+	parser.add_argument("--routes", action='store_true', help="Routing Table and Interface Data")
 	parser.add_argument("-w", "--wireless", action='store_true', help="Wireless Connection Data")
 	parser.add_argument("-b", "--bios", action='store_true', help="BIOS Data")
 	parser.add_argument("--pnp", action='store_true', help="Plug-n-play Devices Data")
@@ -179,19 +189,22 @@ def main():
 	#check for verbose
 	if (args.verbose):
 		verbose = True
+		
+	#Create lock
+	lock = Lock()
 
 	#if there is a remote ip, run all of the switches on each machine
 	if ip != "":
 		try:
 			for ipaddr in IPNetwork(ip):
-				Process(target=analyze, args=(ipaddr, verbose, database, stout, args)).start()
+				Process(target=analyze, args=(ipaddr, verbose, database, stout, args, lock)).start()
 		except netaddr.core.AddrFormatError:
 			print "Invalid network address"
 			sys.exit()
 			
 	#no remote IP
 	else:
-		Process(target=analyze, args=("", verbose, database, stout, args)).start()
+		Process(target=analyze, args=("", verbose, database, stout, args, lock)).start()
 		
 if __name__ == "__main__":
 	main()

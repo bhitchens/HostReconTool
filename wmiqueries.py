@@ -7,10 +7,12 @@ class WMIConnection:
 	computerName = ""
 	stout = False
 	
-	def __init__(self, remote, verbose):
+	def __init__(self, remote, verbose, lock, database):
 		self.remote = remote
 		self.w = None
 		self.verbose = verbose
+		self.lock = lock
+		self.database = database
 		global ipAddr
 		#if a remote IP has been provided, set the ipAddr global to that IP
 		if remote != "":
@@ -70,9 +72,13 @@ class WMIConnection:
 		
 	#enter data from wmi query into db
 	def dbEntry(self, itemList, uniqueList, name, dataList):
+		db = sqlite3.connect(self.database)
+		db.text_factory = str
+		c = db.cursor()
+		self.lock.acquire()
 		try:
 			#create table
-			self.c.execute('''CREATE TABLE ''' + name + ''' (ComputerName TEXT, ipAddr text,''' + (''' {} text,''' * len(itemList)).format(*itemList) +  '''unique (''' + uniqueList + '''))''')
+			c.execute('''CREATE TABLE ''' + name + ''' (ComputerName TEXT, ipAddr text,''' + (''' {} text,''' * len(itemList)).format(*itemList) +  '''unique (''' + uniqueList + '''))''')
 		except sqlite3.OperationalError:
 			pass
 		#for each object in the data list
@@ -84,9 +90,12 @@ class WMIConnection:
 				for item in itemList:
 					values.append(self.check(data, item.replace("__","")))
 				#enter the values into the db
-				self.c.execute('INSERT INTO ' + name + ' VALUES (?' + ', ?' * (len(values) - 1) + ')', values)
+				c.execute('INSERT INTO ' + name + ' VALUES (?' + ', ?' * (len(values) - 1) + ')', values)
 			except sqlite3.IntegrityError:
 				pass
+		db.commit()
+		db.close()
+		self.lock.release()
 
 	#comments on this method apply to the other WMI methods
 	def sysData(self):
@@ -105,7 +114,7 @@ class WMIConnection:
 			
 			#unique values for the db
 			uniqueList = "ComputerName, ipAddr"
-			
+
 			#call the db entry function
 			self.dbEntry(itemList, uniqueList, "sys_data", sys)			
 						
