@@ -1,6 +1,7 @@
 from netaddr import IPNetwork
 from multiprocessing import Process, Lock
 import sys, netaddr, wmiqueries, psexecqueries, sqlite3, argparse
+import importlib
 
 #Process provided switches; passed WMI connection
 def runSwitches(connection, psexec, database, args):		
@@ -49,7 +50,7 @@ def runSwitches(connection, psexec, database, args):
 def testDBQuery():
 	db = sqlite3.connect('data.db')
 	c = db.cursor()
-	for row in c.execute('SELECT SID, Name FROM user_data'): print row
+	for row in c.execute('SELECT SID, Name FROM user_data'): print(row)
 	db.close()
 
 def testWMIQuery():
@@ -58,7 +59,7 @@ def testWMIQuery():
 	connection.database = database
 	connection.stout = stout
 	for item in connection.w.Win32_DriverVXD ():
-		print item
+		print(item)
 	
 def testPsexQuery():
 	user = ""
@@ -77,9 +78,9 @@ def testPsexQuery():
 def analyze(ipaddr, verbose, database, stout, args, lock):
 	lock.acquire()
 	if ipaddr == "":
-		print "Starting localhost."
+		print("Starting localhost.")
 	else:
-		print "Starting " + str(ipaddr) + "."
+		print("Starting " + str(ipaddr) + ".")
 	lock.release()
 	try:
 		#Create wmi object and set its database name and stout boolean
@@ -90,9 +91,9 @@ def analyze(ipaddr, verbose, database, stout, args, lock):
 	except Exception:
 		lock.acquire()
 		if ipaddr == "":
-			print "Failed to make WMI connection to localhost"
+			print("Failed to make WMI connection to localhost")
 		else:
-			print "Failed to make WMI connection to " + str(ipaddr)
+			print("Failed to make WMI connection to " + str(ipaddr))
 		lock.release()
 		sys.exit()
 		
@@ -105,9 +106,9 @@ def analyze(ipaddr, verbose, database, stout, args, lock):
 	except Exception:
 		lock.acquire()
 		if ipaddr == "":
-			print "Failed to make psexec connection to localhost"
+			print("Failed to make psexec connection to localhost")
 		else:
-			print "Failed to make psexec connection to " + str(ipaddr)
+			print("Failed to make psexec connection to " + str(ipaddr))
 		lock.release()
 		sys.exit()
 	
@@ -116,16 +117,15 @@ def analyze(ipaddr, verbose, database, stout, args, lock):
 		
 	lock.acquire()
 	if ipaddr == "":
-		print "localhost complete."
+		print("localhost complete.")
 	else:
-		print str(ipaddr) + " complete."
+		print(str(ipaddr) + " complete.")
 	lock.release()
 
 #main function
 def main():
 	#these lines allow non-ASCII characters
-	reload(sys)
-	sys.setdefaultencoding('utf-8')
+	importlib.reload(sys)
 
 	database = ""
 	stout = False
@@ -176,7 +176,7 @@ def main():
 	
 	#Confirm that either db stout are selected
 	if ((database == "") and (not stout)):
-		print "Either -d or --db with database name or -o or --stout is required."
+		print("Either -d or --db with database name or -o or --stout is required.")
 		sys.exit()
 
 	#check for remote IP address switch
@@ -184,7 +184,7 @@ def main():
 	if (args.ipaddr):
 		ip = args.ipaddr[0]
 	else:
-		print "No remote address, running on local machine."
+		print("No remote address, running on local machine.")
 			
 	#check for verbose
 	if (args.verbose):
@@ -199,7 +199,7 @@ def main():
 			for ipaddr in IPNetwork(ip):
 				Process(target=analyze, args=(ipaddr, verbose, database, stout, args, lock)).start()
 		except netaddr.core.AddrFormatError:
-			print "Invalid network address"
+			print("Invalid network address")
 			sys.exit()
 			
 	#no remote IP

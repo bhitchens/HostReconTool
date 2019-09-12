@@ -29,12 +29,9 @@ class PSExecQuery:
 
 	def psexec(self, command):
 		#TODO: should receive stderr and check for success/failure
-		FNULL = open(os.devnull, 'w')
 		list = ["psexec.exe", "-AcceptEULA", "-nobanner", "\\\\" + str(ipAddr), "-h"] + command.split(" ")
-		FNULL = open(os.devnull, 'w')
-		proc = subprocess.Popen(list, stdout=subprocess.PIPE, stderr=FNULL)
-		FNULL.close()		
-		return proc.stdout.read().split('\n')
+		proc = subprocess.check_output(list, stderr=subprocess.DEVNULL, text=True)
+		return proc.split('\n')
 		
 	def dbInsert(self, name, data):
 		self.lock.acquire()
@@ -108,7 +105,7 @@ class PSExecQuery:
 			uniqueList = "ComputerName, ipAddr, LocalIP, LocalPort, ForeignIP, ForeignPort"
 			self.dbEntry(itemList, uniqueList, "open_ports", portsData)	
 		if self.stout:
-			for line in results: print line
+			for line in results: print(line)
 				
 	def route(self):
 		global computerName
@@ -173,7 +170,7 @@ class PSExecQuery:
 			if "None" not in results[i]:
 				i += 1
 				while "===" not in results[i]:
-					print results[i]
+					print(results[i])
 					resultsList = results[i].split()
 					if len(resultsList) < 4:
 						i += 1
@@ -187,7 +184,7 @@ class PSExecQuery:
 		#send data to standard out
 		if self.stout:
 			for line in results:
-				print line
+				print(line)
 				
 	def arp(self):
 		global computerName
@@ -214,7 +211,7 @@ class PSExecQuery:
 			self.dbEntry(itemList, uniqueList, "arp_data", arpData)
 		if self.stout:
 			for line in results:
-				print line
+				print(line)
 				
 	def wireless(self):
 		global computerName
@@ -240,4 +237,4 @@ class PSExecQuery:
 			uniqueList = "ComputerName, ipAddr, Type, Name"
 			self.dbEntry(itemList, uniqueList, "wireless_profiles", wirelessData)
 		if self.stout:
-			print line
+			print(line)
