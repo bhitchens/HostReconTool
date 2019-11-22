@@ -5,11 +5,13 @@ import importlib
 
 #Process provided switches; passed WMI connection
 def runSwitches(connection, psexec, database, args):		
-
+	global wmiFail
+	global pseFail
+	
 	#check for -A/--all
 	if "-A" in sys.argv or "--all" in sys.argv:
-		connection.all()
-		psexec.all()
+		if not wmiFail: connection.all()
+		if not pseFail: psexec.all()
 		return
 
 	#If using a database, run sysdata to get computer name
@@ -21,27 +23,29 @@ def runSwitches(connection, psexec, database, args):
 		connection.sysData()
 		
 	#Run functions for all supplied flags
-	if (args.users): connection.userData()
-	if (args.netlogin): connection.netLogin()
-	if (args.groups): connection.groupData()
-	if (args.ldisks): connection.logicalDisks()
-	if (args.timezone): connection.timeZone()
-	if (args.startup): connection.startupPrograms()
-	if (args.profiles): connection.userProfiles()
-	if (args.adapters): connection.networkAdapters()
-	if (args.process): connection.processes()
-	if (args.services): connection.services()
-	if (args.shares): connection.shares()
-	if (args.pdisks): connection.physicalDisks()
-	if (args.memory): connection.physicalMemory()
-	if (args.patches): connection.patches()
-	if (args.bios): connection.bios()
-	if (args.pnp): connection.pnp()
-	if (args.drivers): connection.drivers()
-	if (args.ports): psexec.ports()
-	if (args.arp): psexec.arp()
-	if (args.wireless): psexec.wireless()
-	if (args.routes): psexec.route()
+	if not wmiFail:
+		if (args.users): connection.userData()
+		if (args.netlogin): connection.netLogin()
+		if (args.groups): connection.groupData()
+		if (args.ldisks): connection.logicalDisks()
+		if (args.timezone): connection.timeZone()
+		if (args.startup): connection.startupPrograms()
+		if (args.profiles): connection.userProfiles()
+		if (args.adapters): connection.networkAdapters()
+		if (args.process): connection.processes()
+		if (args.services): connection.services()
+		if (args.shares): connection.shares()
+		if (args.pdisks): connection.physicalDisks()
+		if (args.memory): connection.physicalMemory()
+		if (args.patches): connection.patches()
+		if (args.bios): connection.bios()
+		if (args.pnp): connection.pnp()
+		if (args.drivers): connection.drivers()
+	if not pseFail:
+		if (args.ports): psexec.ports()
+		if (args.arp): psexec.arp()
+		if (args.wireless): psexec.wireless()
+		if (args.routes): psexec.route()
 	
 	return	
 
@@ -76,6 +80,10 @@ def testPsexQuery():
 
 #Sets up connections and triggers runSwitches
 def analyze(ipaddr, verbose, database, stout, args, lock):
+	global wmiFail
+	wmiFail = False
+	global pseFail
+	pseFail = False
 	lock.acquire()
 	if ipaddr == "":
 		print("Starting localhost.")
@@ -95,9 +103,9 @@ def analyze(ipaddr, verbose, database, stout, args, lock):
 		else:
 			print("Failed to make WMI connection to " + str(ipaddr))
 		lock.release()
-		sys.exit()
+		wmiFail = True
 		
-	try:	
+	try:
 		#create psexec object and set its database name, stout boolean, and computer name
 		psexec = psexecqueries.PSExecQuery(ipaddr, verbose, lock, database)
 		psexec.database = database
@@ -110,7 +118,8 @@ def analyze(ipaddr, verbose, database, stout, args, lock):
 		else:
 			print("Failed to make psexec connection to " + str(ipaddr))
 		lock.release()
-		sys.exit()
+		if wmiFail: sys.exit()
+		else: pseFail = True
 	
 	#Run functions based on switches
 	runSwitches(connection, psexec, database, args)

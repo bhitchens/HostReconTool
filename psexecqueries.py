@@ -25,13 +25,20 @@ class PSExecQuery:
 			
 	def setComputerName(self):
 		global computerName
-		computerName = self.psexec("hostname")[-2]
+		computerName = self.psexec("hostname", "get computer name")[-2]
 
-	def psexec(self, command):
+	def psexec(self, command, funcName):
 		#TODO: should receive stderr and check for success/failure
-		list = ["psexec.exe", "-AcceptEULA", "-nobanner", "\\\\" + str(ipAddr), "-h"] + command.split(" ")
-		proc = subprocess.check_output(list, stderr=subprocess.DEVNULL, text=True)
-		return proc.split('\n')
+		try:
+			list = ["psexec.exe", "-AcceptEULA", "-nobanner", "\\\\" + str(ipAddr), "-h"] + command.split(" ")
+			proc = subprocess.check_output(list, stderr=subprocess.DEVNULL, text=True, timeout=60)
+			return proc.split('\n')
+		except subprocess.CalledProcessError:
+			print("Failed to get %s on %s" % (funcName, ipAddr))
+			return 1
+		except subprocess.TimeoutExpired:
+			print("%s timed out on %s" % (funcName, ipAddr))
+			return 1
 		
 	def dbInsert(self, name, data):
 		self.lock.acquire()
@@ -72,7 +79,9 @@ class PSExecQuery:
 	
 	def ports(self):
 		global computerName
-		results = self.psexec("netstat -anob")
+		if (self.verbose): print("Fetching Open Ports Data from %s" % (ipAddr))
+		results = self.psexec("netstat -anob", "ports")
+		if (results == 1): return
 		i = 0
 		while "Proto" not in results[i]:
 			i += 1
@@ -109,7 +118,9 @@ class PSExecQuery:
 				
 	def route(self):
 		global computerName
-		results = self.psexec("route print")
+		if (self.verbose): print("Fetching Route Data from %s" % (ipAddr))
+		results = self.psexec("route print", "routes")
+		if (results == 1): return
 		i = 0
 		while "Interface List" not in results[i]:
 			i += 1
@@ -188,7 +199,9 @@ class PSExecQuery:
 				
 	def arp(self):
 		global computerName
-		results = self.psexec("arp -a")
+		if (self.verbose): print("Fetching Arp Table Data from %s" % (ipAddr))
+		results = self.psexec("arp -a", "arp table")
+		if (results == 1): return
 		i = 0		
 		interface = ""
 		interfaceNum = ""		
@@ -215,7 +228,9 @@ class PSExecQuery:
 				
 	def wireless(self):
 		global computerName
-		results = self.psexec("netsh wlan show profiles")
+		if (self.verbose): print("Fetching Wireless Profiles Data from %s" % (ipAddr))
+		results = self.psexec("netsh wlan show profiles", "wireless profiles")
+		if (results == 1): return
 		i = 0
 		header = True
 		dash = True		

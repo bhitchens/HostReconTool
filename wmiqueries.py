@@ -99,7 +99,7 @@ class WMIConnection:
 
 	#comments on this method apply to the other WMI methods
 	def sysData(self):
-		if (self.verbose): print("Fetching System Data")
+		if (self.verbose): print("Fetching System Data from %s" % (ipAddr))
 		#get the WMI data
 		sys = [self.w.Win32_ComputerSystem()[0]]
 		
@@ -124,7 +124,7 @@ class WMIConnection:
 		return
 	
 	def userData(self):
-		if (self.verbose): print("Fetching user data")
+		if (self.verbose): print("Fetching user data from %s" % (ipAddr))
 		accounts = self.w.Win32_UserAccount()
 		if self.database != "":
 			itemList = ("AccountType", "Caption", "Description", "Disabled", "Domain", "FullName", "LocalAccount", "Lockout", "Name", "PasswordChangeable", "PasswordExpires", "PasswordRequired", "SID", "SIDType", "Status")
@@ -136,7 +136,7 @@ class WMIConnection:
 		return
 
 	def netLogin(self):
-		if (self.verbose): print("Fetching net login data")
+		if (self.verbose): print("Fetching net login data from %s" % (ipAddr))
 		logins = self.w.Win32_NetworkLoginProfile()
 		if self.database != "":
 			itemList = ("Caption", "Description", "SettingID", "AccountExpires", "AuthorizationFlags", "BadPasswordCount", "CodePage", "Comment", "CountryCode", "Flags", "FullName", "HomeDirectory", "HomeDirectoryDrive", "LastLogoff", "LastLogon", "LogonHours", "LogonServer", "MaximumStorage", "Name", "NumberOfLogons", "Parameters", "PasswordAge", "PasswordExpires", "PrimaryGroupId", "Privileges", "Profile", "ScriptPath", "UnitsPerWeek", "UserComment", "UserId", "UserType", "Workstations")
@@ -148,7 +148,7 @@ class WMIConnection:
 		return
 				
 	def groupData(self):
-		if (self.verbose): print("Fetching group data")
+		if (self.verbose): print("Fetching group data from %s" % (ipAddr))
 		groups = self.w.Win32_Group()
 		if self.database != "":
 			itemList = ("Caption","Description","Domain","LocalAccount","Name","SID","SIDType","Status")
@@ -161,7 +161,7 @@ class WMIConnection:
 		return	
 
 	def logicalDisks(self):		
-		if (self.verbose): print("Fetching logical disk data")
+		if (self.verbose): print("Fetching logical disk data from %s" % (ipAddr))
 		disks = self.w.Win32_LogicalDisk()
 		if self.database != "":
 			itemList = ("Access", "Availability", "BlockSize", "Caption", "Compressed", "ConfigManagerErrorCode", "ConfigManagerUserConfig", "CreationClassName", "Description", "DeviceID", "DriveType", "ErrorCleared", "ErrorDescription", "ErrorMethodology", "FileSystem", "FreeSpace", "InstallDate", "LastErrorCode", "MaximumComponentLength", "MediaType", "Name", "NumberOfBlocks", "PNPDeviceID", "PowerManagementSupported", "ProviderName", "Purpose", "QuotasDisabled", "QuotasIncomplete", "QuotasRebuilding", "Size", "Status", "StatusInfo", "SupportsDiskQuotas", "SupportsFileBasedCompression", "SystemCreationClassName", "SystemName", "VolumeDirty", "VolumeName", "VolumeSerialNumber")
@@ -173,7 +173,7 @@ class WMIConnection:
 		return
 		
 	def timeZone(self):
-		if (self.verbose): print("Fetching time zone data")
+		if (self.verbose): print("Fetching time zone data from %s" % (ipAddr))
 		zones = self.w.Win32_TimeZone()
 		if self.database != "":
 			itemList = ("Caption", "Description", "SettingID", "Bias", "DaylightBias", "DaylightDay", "DaylightDayOfWeek", "DaylightHour", "DaylightMillisecond", "DaylightMinute", "DaylightMonth", "DaylightName", "DaylightSecond", "DaylightYear", "StandardBias", "StandardDay", "StandardDayOfWeek", "StandardHour", "StandardMillisecond", "StandardMinute", "StandardMonth", "StandardName", "StandardSecond", "StandardYear")
@@ -185,7 +185,7 @@ class WMIConnection:
 		return
 		
 	def startupPrograms(self):
-		if (self.verbose): print("Fetching startup programs")
+		if (self.verbose): print("Fetching startup programs from %s" % (ipAddr))
 		programs = self.w.Win32_StartupCommand()
 		if self.database != "":
 			itemList = ("Caption", "Description", "SettingID", "Command", "Location", "Name", "User", "UserSID")
@@ -197,7 +197,7 @@ class WMIConnection:
 		return
 
 	def userProfiles(self):
-		if (self.verbose): print("Fetching user profiles")
+		if (self.verbose): print("Fetching user profiles from %s" % (ipAddr))
 		profiles = self.w.Win32_UserProfile()
 		if self.database != "":
 			itemList = ("SID", "LocalPath", "Loaded", "refCount", "Special", "RoamingConfigured", "RoamingPath", "RoamingPreference", "Status", "LastUseTime", "LastDownloadTime", "LastUploadTime", "HealthStatus", "LastAttemptedProfileDownloadTime", "LastAttemptedProfileUploadTime", "LastBackgroundRegistryUploadTime", "AppDataRoaming", "Desktop", "StartMenu", "Documents", "Pictures", "Music", "Videos", "Favorites", "Contacts", "Downloads", "Links", "Searches", "SavedGames")
@@ -209,7 +209,7 @@ class WMIConnection:
 		return		
 		
 	def networkAdapters(self):
-		if (self.verbose): print("Fetching network adapter data")
+		if (self.verbose): print("Fetching network adapter data from %s" % (ipAddr))
 		adapters = self.w.Win32_NetworkAdapterConfiguration()
 		if self.database != "":
 			itemList = ("Caption", "Description", "SettingID", "ArpAlwaysSourceRoute", "ArpUseEtherSNAP", "DatabasePath", "DeadGWDetectEnabled", "DefaultIPGateway", "DefaultTOS", "DefaultTTL", "DHCPEnabled", "DHCPLeaseExpires", "DHCPLeaseObtained", "DHCPServer", "DNSDomain", "DNSDomainSuffixSearchOrder", "DNSEnabledForWINSResolution", "DNSHostName", "DNSServerSearchOrder", "DomainDNSRegistrationEnabled", "ForwardBufferMemory", "FullDNSRegistrationEnabled", "GatewayCostMetric", "IGMPLevel", "Index__", "InterfaceIndex", "IPAddress", "IPConnectionMetric", "IPEnabled", "IPFilterSecurityEnabled", "IPPortSecurityEnabled", "IPSecPermitIPProtocols", "IPSecPermitTCPPorts", "IPSecPermitUDPPorts", "IPSubnet", "IPUseZeroBroadcast", "IPXAddress", "IPXEnabled", "IPXFrameType", "IPXMediaType", "IPXNetworkNumber", "IPXVirtualNetNumber", "KeepAliveInterval", "KeepAliveTime", "MACAddress", "MTU", "NumForwardPackets", "PMTUBHDetectEnabled", "PMTUDiscoveryEnabled", "ServiceName", "TcpipNetbiosOptions", "TcpMaxConnectRetransmissions", "TcpMaxDataRetransmissions", "TcpNumConnections", "TcpUseRFC1122UrgentPointer", "TcpWindowSize", "WINSEnableLMHostsLookup", "WINSHostLookupFile", "WINSPrimaryServer", "WINSScopeID", "WINSSecondaryServer")
@@ -221,7 +221,7 @@ class WMIConnection:
 		return
 
 	def processes(self):
-		if (self.verbose): print("Fetching processes")
+		if (self.verbose): print("Fetching processes from %s" % (ipAddr))
 		processes = self.w.win32_process()
 		if self.database != "":
 			itemList = ("CreationClassName", "Caption", "CommandLine", "CreationDate", "CSCreationClassName", "CSName", "Description", "ExecutablePath", "ExecutionState", "Handle", "HandleCount", "InstallDate", "KernelModeTime", "MaximumWorkingSetSize", "MinimumWorkingSetSize", "Name", "OSCreationClassName", "OSName", "OtherOperationCount", "OtherTransferCount", "PageFaults", "PageFileUsage", "ParentProcessId", "PeakPageFileUsage", "PeakVirtualSize", "PeakWorkingSetSize", "Priority", "PrivatePageCount", "ProcessId", "QuotaNonPagedPoolUsage", "QuotaPagedPoolUsage", "QuotaPeakNonPagedPoolUsage", "QuotaPeakPagedPoolUsage", "ReadOperationCount", "ReadTransferCount", "SessionId", "Status", "TerminationDate", "ThreadCount", "UserModeTime", "VirtualSize", "WindowsVersion", "WorkingSetSize", "WriteOperationCount", "WriteTransferCount")
@@ -234,7 +234,7 @@ class WMIConnection:
 		return
 		
 	def services(self):
-		if (self.verbose): print("Fetching services")
+		if (self.verbose): print("Fetching services from %s" % (ipAddr))
 		services = self.w.win32_Service()
 		if self.database != "":
 			itemList = ("AcceptPause", "AcceptStop", "Caption", "CheckPoint", "CreationClassName", "DelayedAutoStart", "Description", "DesktopInteract", "DisplayName", "ErrorControl", "ExitCode", "InstallDate", "Name", "PathName", "serviceId", "ServiceSpecificExitCode", "ServiceType", "Started", "StartMode", "StartName", "State", "Status", "SystemCreationClassName", "SystemName", "TagId", "WaitHint")
@@ -246,7 +246,7 @@ class WMIConnection:
 		return	
 		
 	def shares(self):
-		if (self.verbose): print("Fetching shares")
+		if (self.verbose): print("Fetching shares from %s" % (ipAddr))
 		remshares = self.w.Win32_Share()
 		if self.database != "":
 			itemList = ("Caption", "Description", "InstallDate", "Status", "AccessMask", "AllowMaximum", "MaximumAllowed", "Name", "Path", "Type")
@@ -258,7 +258,7 @@ class WMIConnection:
 		return
 
 	def physicalDisks(self):
-		if (self.verbose): print("Fetching physical disk data")
+		if (self.verbose): print("Fetching physical disk data from %s" % (ipAddr))
 		drives = self.w.Win32_DiskDrive()
 		if self.database != "":
 			itemList = ("Availability", "BytesPerSector", "Capabilities", "CapabilityDescriptions", "Caption", "CompressionMethod", "ConfigManagerErrorCode", "ConfigManagerUserConfig", "CreationClassName", "DefaultBlockSize", "Description", "DeviceID", "ErrorCleared", "ErrorDescription", "ErrorMethodology", "FirmwareRevision", "Index__", "InstallDate", "InterfaceType", "LastErrorCode", "Manufacturer", "MaxBlockSize", "MaxMediaSize", "MediaLoaded", "MediaType", "MinBlockSize", "Model", "Name", "NeedsCleaning", "NumberOfMediaSupported", "Partitions", "PNPDeviceID", "PowerManagementCapabilities", "PowerManagementSupported", "SCSIBus", "SCSILogicalUnit", "SCSIPort", "SCSITargetId", "SectorsPerTrack", "SerialNumber", "Signature", "Size", "Status", "StatusInfo", "SystemCreationClassName", "SystemName", "TotalCylinders", "TotalHeads", "TotalSectors", "TotalTracks", "TracksPerCylinder")
@@ -270,7 +270,7 @@ class WMIConnection:
 		return
 		
 	def physicalMemory(self):
-		if (self.verbose): print("Fetching physical memory data")
+		if (self.verbose): print("Fetching physical memory data from %s" % (ipAddr))
 		memory = self.w.Win32_PhysicalMemory()
 		if self.database != "":
 			itemList = ("Attributes", "BankLabel", "Capacity", "Caption", "ConfiguredClockSpeed", "ConfiguredVoltage", "CreationClassName", "DataWidth", "Description", "DeviceLocator", "FormFactor", "HotSwappable", "InstallDate", "InterleaveDataDepth", "InterleavePosition", "Manufacturer", "MaxVoltage", "MemoryType", "MinVoltage", "Model", "Name", "OtherIdentifyingInfo", "PartNumber", "PositionInRow", "PoweredOn", "Removable", "Replaceable", "SerialNumber", "SKU", "SMBIOSMemoryType", "Speed", "Status", "Tag", "TotalWidth", "TypeDetail", "Version")
@@ -282,7 +282,7 @@ class WMIConnection:
 		return
 		
 	def patches(self):
-		if (self.verbose): print("Fetching patch data")
+		if (self.verbose): print("Fetching patch data from %s" % (ipAddr))
 		fixes = self.w.Win32_QuickFixEngineering()
 		if self.database != "":
 			itemList = ("Caption", "Description", "InstallDate", "Name", "Status", "CSName", "FixComments", "HotFixID", "InstalledBy", "InstalledOn", "ServicePackInEffect")
@@ -294,7 +294,7 @@ class WMIConnection:
 		return		
 		
 	def bios(self):
-		if (self.verbose): print("Fetching BIOS data")
+		if (self.verbose): print("Fetching BIOS data from %s" % (ipAddr))
 		bios = self.w.Win32_BIOS()
 		if self.database != "":
 			itemList = ("BiosCharacteristics", "BIOSVersion", "BuildNumber", "Caption", "CodeSet", "CurrentLanguage", "Description", "EmbeddedControllerMajorVersion", "EmbeddedControllerMinorVersion", "IdentificationCode", "InstallableLanguages", "InstallDate", "LanguageEdition", "ListOfLanguages", "Manufacturer", "Name", "OtherTargetOS", "PrimaryBIOS", "ReleaseDate", "SerialNumber", "SMBIOSBIOSVersion", "SMBIOSMajorVersion", "SMBIOSMinorVersion", "SMBIOSPresent", "SoftwareElementID", "SoftwareElementState", "Status", "SystemBiosMajorVersion", "SystemBiosMinorVersion", "TargetOperatingSystem", "Version")
@@ -306,7 +306,7 @@ class WMIConnection:
 		return
 		
 	def pnp(self):
-		if (self.verbose): print("Fetching PlugNPlay data")
+		if (self.verbose): print("Fetching PlugNPlay data from %s" % (ipAddr))
 		pnp = self.w.Win32_PNPEntity()
 		if self.database != "":
 			itemList = ("Availability", "Caption", "ClassGuid", "CompatibleID", "ConfigManagerErrorCode", "ConfigManagerUserConfig", "CreationClassName", "Description", "DeviceID", "ErrorCleared", "ErrorDescription", "HardwareID", "InstallDate", "LastErrorCode", "Manufacturer", "Name", "PNPClass", "PNPDeviceID", "PowerManagementCapabilities", "PowerManagementSupported", "Present", "Service", "Status", "StatusInfo", "SystemCreationClassName", "SystemName")
@@ -318,7 +318,7 @@ class WMIConnection:
 		return
 		
 	def drivers(self):
-		if (self.verbose): print("Fetching driver data")
+		if (self.verbose): print("Fetching driver data from %s" % (ipAddr))
 		try:
 			drivers = self.w.Win32_SystemDriver()
 			if self.database != "":
