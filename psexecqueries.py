@@ -86,24 +86,24 @@ class PSExecQuery:
 		while "Proto" not in results[i]:
 			i += 1
 		i += 1
-		j = i
 		#fixed to run normally
 		if self.database != "":
 			portsData = []
-			while i < len(results) - 1:
+			resultsLen = len(results)
+			while i < resultsLen - 1:
 				splitLine = results[i].split()
 				if len(splitLine) < 3:
 					i += 1
 				else:
-					local = splitLine[1].replace("::", ";;").split(':')
-					localIP = ""						
+					local = splitLine[1].replace("::", ";;").split(':')						
 					foreign = splitLine[2].replace("::",";;").split(':')
 					i += 1
+					if i >= resultsLen: break
 					owner = ""
 					if "TIME_WAIT" not in results[i-1]:
 						owner = results[i].strip()
 						i += 1
-						if len(results[i]) > 1 and results[i].split()[0][0] == '[':
+						if i < resultsLen - 1 and len(results[i]) > 1 and results[i].split()[0][0] == '[':
 							owner += ' ' + results[i].strip()
 							i += 1
 					if splitLine[0] == "TCP":
@@ -125,7 +125,6 @@ class PSExecQuery:
 		while "Interface List" not in results[i]:
 			i += 1
 		i += 1
-		j = i
 		
 		if self.database != "":
 		
@@ -136,7 +135,7 @@ class PSExecQuery:
 				if len(resultsList) == 3:
 					interfaceData.append((computerName, ipAddr, resultsList[0], resultsList[1], resultsList[2]))
 				else:
-					interfaceData.append((computerName, ipAddr, resultsList[0], "", resultsList[1]))				
+					interfaceData.append((computerName, ipAddr, resultsList[0], "", resultsList[1]))
 				i += 1
 			itemList = "Interface", "MAC", "Label"
 			uniqueList = "ComputerName, ipAddr, Interface"
