@@ -3,126 +3,102 @@ from multiprocessing import Process, Lock
 import sys, netaddr, wmiqueries, psexecqueries, sqlite3, argparse
 import importlib
 
-#Process provided switches; passed WMI connection
-def runSwitches(connection, psexec, database, args):		
+def wmiCall(ipaddr, verbose, lock, database, stout, function):
 	global wmiFail
-	global pseFail
-	
-	#check for -A/--all
-	if "-A" in sys.argv or "--all" in sys.argv:
-		if not wmiFail: connection.all()
-		if not pseFail: psexec.all()
-		return
-
-	#If using a database, run sysdata to get computer name
-	if database != "":
-		connection.sysData()
-		computerName = connection.getComputerName()
-	#Otherwise only run sysdata if the sysinfo flag is supplied
-	elif args.sysinfo:
-		connection.sysData()
+	global connection
+	if connection is None and not wmiFail:
+		try:
+			#Create wmi object and set its database name and stout boolean
+			connection = wmiqueries.WMIConnection(ipaddr, verbose, lock, database)	
+			connection.database = database
+			connection.stout = stout
+			connection.connect()
+			eval("connection.%s" % (function))
+		except Exception:
+			lock.acquire()
+			if ipaddr == "":
+				print("Failed to make WMI connection to localhost")
+			else:
+				print("Failed to make WMI connection to " + str(ipaddr))
+			lock.release()
+			wmiFail = True
+	return connection
 		
-	#Run functions for all supplied flags
-	if not wmiFail:
-		if (args.users): connection.userData()
-		if (args.netlogin): connection.netLogin()
-		if (args.groups): connection.groupData()
-		if (args.ldisks): connection.logicalDisks()
-		if (args.timezone): connection.timeZone()
-		if (args.startup): connection.startupPrograms()
-		if (args.profiles): connection.userProfiles()
-		if (args.adapters): connection.networkAdapters()
-		if (args.process): connection.processes()
-		if (args.services): connection.services()
-		if (args.shares): connection.shares()
-		if (args.pdisks): connection.physicalDisks()
-		if (args.memory): connection.physicalMemory()
-		if (args.patches): connection.patches()
-		if (args.bios): connection.bios()
-		if (args.pnp): connection.pnp()
-		if (args.drivers): connection.drivers()
-	if not pseFail:
-		if (args.ports): psexec.ports()
-		if (args.arp): psexec.arp()
-		if (args.wireless): psexec.wireless()
-		if (args.routes): psexec.route()
-	
-	return	
-
-#the following methods are for testing
-	
-def testDBQuery():
-	db = sqlite3.connect('data.db')
-	c = db.cursor()
-	for row in c.execute('SELECT SID, Name FROM user_data'): print(row)
-	db.close()
-
-def testWMIQuery():
-	connection = wmiqueries.WMIConnection(remote, "", "")
-	connection.connect()
-	connection.database = database
-	connection.stout = stout
-	for item in connection.w.Win32_DriverVXD ():
-		print(item)
-	
-def testPsexQuery():
-	user = ""
-	password = ""
-	psexec = psexecqueries.PSExecQuery(remote, user, password)
-	psexec.database = database
-	psexec.stout = stout
-	psexec.setComputerName()
-	psexec.arp()
-#use this for testing
-#testWMIQuery()
-#testPsexQuery()
-#sys.exit()
+def psexecCall(ipaddr, verbose, lock, database, stout, function):
+	global pseFail
+	global psexec
+	if psexec is None and not pseFail:
+		try:
+			#create psexec object and set its database name, stout boolean
+			psexec = psexecqueries.PSExecQuery(ipaddr, verbose, lock, database)
+			psexec.database = database
+			psexec.stout = stout
+			#check to see if psexec is functional
+			psexec.testPsexec()
+			eval("psexec.%s" % (function))
+		except Exception:
+			lock.acquire()
+			if ipaddr == "":
+				print("Failed to make psexec connection to localhost")
+			else:
+				print("Failed to make psexec connection to " + str(ipaddr))
+			lock.release()
+			pseFail = True
+	return psexec
 
 #Sets up connections and triggers runSwitches
 def analyze(ipaddr, verbose, database, stout, args, lock):
+	#declare neccessary globals
 	global wmiFail
-	wmiFail = False
 	global pseFail
+	global connection
+	global psexec
+	
+	#initialize globals
+	wmiFail = False
 	pseFail = False
+	connection = None
+	psexec = None
+	
 	lock.acquire()
 	if ipaddr == "":
 		print("Starting localhost.")
 	else:
 		print("Starting " + str(ipaddr) + ".")
 	lock.release()
-	try:
-		#Create wmi object and set its database name and stout boolean
-		connection = wmiqueries.WMIConnection(ipaddr, verbose, lock, database)	
-		connection.database = database
-		connection.stout = stout
-		connection.connect()		
-	except Exception:
-		lock.acquire()
-		if ipaddr == "":
-			print("Failed to make WMI connection to localhost")
-		else:
-			print("Failed to make WMI connection to " + str(ipaddr))
-		lock.release()
-		wmiFail = True
-		
-	try:
-		#create psexec object and set its database name, stout boolean, and computer name
-		psexec = psexecqueries.PSExecQuery(ipaddr, verbose, lock, database)
-		psexec.database = database
-		psexec.stout = stout
-		psexec.setComputerName()
-	except Exception:
-		lock.acquire()
-		if ipaddr == "":
-			print("Failed to make psexec connection to localhost")
-		else:
-			print("Failed to make psexec connection to " + str(ipaddr))
-		lock.release()
-		if wmiFail: sys.exit()
-		else: pseFail = True
-	
+
 	#Run functions based on switches
-	runSwitches(connection, psexec, database, args)
+	#check for -A/--all
+	if "-A" in sys.argv or "--all" in sys.argv:
+		if not wmiFail: wmiCall(ipaddr, verbose, lock, database, stout, "all()")
+		if not pseFail: psexecCall(ipaddr, verbose, lock, database, stout, "all()")
+		return
+		
+	#Run functions for all supplied flags
+	if not wmiFail:
+		if (args.users): wmiCall(ipaddr, verbose, lock, database, stout, "userData()")
+		if (args.netlogin): wmiCall(ipaddr, verbose, lock, database, stout, "netLogin()")
+		if (args.groups): wmiCall(ipaddr, verbose, lock, database, stout, "groupData()")
+		if (args.ldisks): wmiCall(ipaddr, verbose, lock, database, stout, "logicalDisks()")
+		if (args.timezone): wmiCall(ipaddr, verbose, lock, database, stout, "timeZone()")
+		if (args.startup): wmiCall(ipaddr, verbose, lock, database, stout, "startupPrograms()")
+		if (args.profiles): wmiCall(ipaddr, verbose, lock, database, stout, "userProfiles()")
+		if (args.adapters): wmiCall(ipaddr, verbose, lock, database, stout, "networkAdapters()")
+		if (args.process): wmiCall(ipaddr, verbose, lock, database, stout, "processes()")
+		if (args.services): wmiCall(ipaddr, verbose, lock, database, stout, "services()")
+		if (args.shares): wmiCall(ipaddr, verbose, lock, database, stout, "shares()")
+		if (args.pdisks): wmiCall(ipaddr, verbose, lock, database, stout, "physicalDisks()")
+		if (args.memory): wmiCall(ipaddr, verbose, lock, database, stout, "physicalMemory()")
+		if (args.patches): wmiCall(ipaddr, verbose, lock, database, stout, "patches()")
+		if (args.bios): wmiCall(ipaddr, verbose, lock, database, stout, "bios()")
+		if (args.pnp): wmiCall(ipaddr, verbose, lock, database, stout, "pnp()")
+		if (args.drivers): wmiCall(ipaddr, verbose, lock, database, stout, "drivers()")
+		if args.sysinfo: wmiCall(ipaddr, verbose, lock, database, stout, "sysData()")
+	if not pseFail:
+		if (args.ports): psexecCall(ipaddr, verbose, lock, database, stout, "ports()")
+		if (args.arp): psexecCall(ipaddr, verbose, lock, database, stout, "arp()")
+		if (args.wireless): psexecCall(ipaddr, verbose, lock, database, stout, "wireless()")
+		if (args.routes): psexecCall(ipaddr, verbose, lock, database, stout, "route()")
 		
 	lock.acquire()
 	if ipaddr == "":

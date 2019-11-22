@@ -22,13 +22,12 @@ class PSExecQuery:
 			
 	def connectDB(self, cursor):
 		self.c = cursor
-			
-	def setComputerName(self):
-		global computerName
-		computerName = self.psexec("hostname", "get computer name")[-2]
+		
+	def testPsexec(self):
+		list = ["psexec.exe", "-AcceptEULA", "-nobanner", "\\\\" + str(ipAddr), "-h", "hostname"]
+		proc = subprocess.check_output(list, stderr=subprocess.DEVNULL, text=True, timeout=60)
 
 	def psexec(self, command, funcName):
-		#TODO: should receive stderr and check for success/failure
 		try:
 			list = ["psexec.exe", "-AcceptEULA", "-nobanner", "\\\\" + str(ipAddr), "-h"] + command.split(" ")
 			proc = subprocess.check_output(list, stderr=subprocess.DEVNULL, text=True, timeout=60)
@@ -52,7 +51,7 @@ class PSExecQuery:
 		self.lock.acquire()
 		try:
 			#create table
-			c.execute('''CREATE TABLE ''' + name + ''' (ComputerName TEXT, ipAddr text,''' + (''' {} text,''' * len(itemList)).format(*itemList) +  '''unique (''' + uniqueList + '''))''')
+			c.execute('''CREATE TABLE ''' + name + ''' (ipAddr text,''' + (''' {} text,''' * len(itemList)).format(*itemList) +  '''unique (''' + uniqueList + '''))''')
 		except sqlite3.OperationalError:
 			pass
 		#for each object in the data list
@@ -78,7 +77,6 @@ class PSExecQuery:
 		self.wireless()
 	
 	def ports(self):
-		global computerName
 		if (self.verbose): print("Fetching Open Ports Data from %s" % (ipAddr))
 		results = self.psexec("netstat -anob", "ports")
 		if (results == 1): return
@@ -107,17 +105,16 @@ class PSExecQuery:
 							owner += ' ' + results[i].strip()
 							i += 1
 					if splitLine[0] == "TCP":
-						portsData.append((computerName, ipAddr, splitLine[0], local[0].replace(";;", "::"), local[1], foreign[0].replace(";;", "::"), foreign[1], splitLine[3], splitLine[4], owner))
+						portsData.append((ipAddr, splitLine[0], local[0].replace(";;", "::"), local[1], foreign[0].replace(";;", "::"), foreign[1], splitLine[3], splitLine[4], owner))
 					else:
-						portsData.append((computerName, ipAddr, splitLine[0], local[0].replace(";;", "::"), local[1], foreign[0].replace(";;", "::"), foreign[1], "", splitLine[3], owner))
+						portsData.append((ipAddr, splitLine[0], local[0].replace(";;", "::"), local[1], foreign[0].replace(";;", "::"), foreign[1], "", splitLine[3], owner))
 			itemList = ("Protocol", "LocalIP", "LocalPort", "ForeignIP", "ForeignPort", "State", "PID", "Owner")
-			uniqueList = "ComputerName, ipAddr, LocalIP, LocalPort, ForeignIP, ForeignPort"
+			uniqueList = "ipAddr, LocalIP, LocalPort, ForeignIP, ForeignPort"
 			self.dbEntry(itemList, uniqueList, "open_ports", portsData)	
 		if self.stout:
 			for line in results: print(line)
 				
 	def route(self):
-		global computerName
 		if (self.verbose): print("Fetching Route Data from %s" % (ipAddr))
 		results = self.psexec("route print", "routes")
 		if (results == 1): return
@@ -133,12 +130,12 @@ class PSExecQuery:
 			while "===" not in results[i]:
 				resultsList = re.sub('\.\.+', ';;', results[i]).split(";;")
 				if len(resultsList) == 3:
-					interfaceData.append((computerName, ipAddr, resultsList[0], resultsList[1], resultsList[2]))
+					interfaceData.append((ipAddr, resultsList[0], resultsList[1], resultsList[2]))
 				else:
-					interfaceData.append((computerName, ipAddr, resultsList[0], "", resultsList[1]))
+					interfaceData.append((ipAddr, resultsList[0], "", resultsList[1]))
 				i += 1
 			itemList = "Interface", "MAC", "Label"
-			uniqueList = "ComputerName, ipAddr, Interface"
+			uniqueList = "ipAddr, Interface"
 			self.dbEntry(itemList, uniqueList, "interface_list", interfaceData)
 			
 			while "Active Routes" not in results[i]:
@@ -149,18 +146,18 @@ class PSExecQuery:
 			routeData = []
 			while "===" not in results[i]:
 				resultsList = results[i].split()
-				routeData.append((computerName, ipAddr, "Active", resultsList[0], resultsList[1], resultsList[2], resultsList[3], resultsList[4]))
+				routeData.append((ipAddr, "Active", resultsList[0], resultsList[1], resultsList[2], resultsList[3], resultsList[4]))
 				i += 1
 			i += 2
 			if "None" not in results[i]:
 				i += 1
 				while "===" not in results[i]:
 					resultsList = results[i].split()
-					routeData.append((computerName, ipAddr, "Persistent", resultsList[0], resultsList[1], resultsList[2], "", resultsList[3]))
+					routeData.append((ipAddr, "Persistent", resultsList[0], resultsList[1], resultsList[2], "", resultsList[3]))
 					i += 1
 				i += 1
 			itemList = "RouteType", "NetworkDestination", "Netmask", "Gateway", "Interface", "Metric text"
-			uniqueList = "ComputerName, ipAddr, NetworkDestination, Interface, Metric"
+			uniqueList = "ipAddr, NetworkDestination, Interface, Metric"
 			self.dbEntry(itemList, uniqueList, "v4_route_list", routeData)
 			
 			while "===" not in results[i]:
@@ -174,7 +171,7 @@ class PSExecQuery:
 				if len(resultsList) < 4:
 					i += 1
 					resultsList += results[i].strip().split()
-				routeData.append((computerName, ipAddr, "Active", resultsList[0], resultsList[1], resultsList[2], resultsList[3]))
+				routeData.append((ipAddr, "Active", resultsList[0], resultsList[1], resultsList[2], resultsList[3]))
 				i += 1
 			i += 2
 			if "None" not in results[i]:
@@ -185,10 +182,10 @@ class PSExecQuery:
 					if len(resultsList) < 4:
 						i += 1
 						resultsList += results[i].strip().split()
-					routeData.append((computerName, ipAddr, "Persistent", resultsList[0], resultsList[1], resultsList[2], resultsList[3]))
+					routeData.append((ipAddr, "Persistent", resultsList[0], resultsList[1], resultsList[2], resultsList[3]))
 					i += 1
 			itemList = "RouteType", "Interface", "Metric", "NetworkDestination", "Gateway"
-			uniqueList = "ComputerName, ipAddr, NetworkDestination, Interface, Metric"
+			uniqueList = "ipAddr, NetworkDestination, Interface, Metric"
 			self.dbEntry(itemList, uniqueList, "v6_route_list", routeData)
 		
 		#send data to standard out
@@ -197,7 +194,6 @@ class PSExecQuery:
 				print(line)
 				
 	def arp(self):
-		global computerName
 		if (self.verbose): print("Fetching Arp Table Data from %s" % (ipAddr))
 		results = self.psexec("arp -a", "arp table")
 		if (results == 1): return
@@ -217,16 +213,15 @@ class PSExecQuery:
 					continue
 				if "Internet" not in line and len(line) > 4:
 					splitLine = line.split()
-					arpData.append((computerName, ipAddr, interface, interfaceNum, splitLine[0], splitLine[1], splitLine[2]))
+					arpData.append((ipAddr, interface, interfaceNum, splitLine[0], splitLine[1], splitLine[2]))
 			itemList = "InterfaceAddr", "InterfaceNum", "Address", "MAC", "Type"
-			uniqueList = "ComputerName, ipAddr, InterfaceAddr, Address"
+			uniqueList = "ipAddr, InterfaceAddr, Address"
 			self.dbEntry(itemList, uniqueList, "arp_data", arpData)
 		if self.stout:
 			for line in results:
 				print(line)
 				
 	def wireless(self):
-		global computerName
 		if (self.verbose): print("Fetching Wireless Profiles Data from %s" % (ipAddr))
 		results = self.psexec("netsh wlan show profiles", "wireless profiles")
 		if (results == 1): return
@@ -246,9 +241,9 @@ class PSExecQuery:
 					continue
 				if self.database != "":
 					splitLine = line.strip().split(':')
-					wirelessData.append((computerName, ipAddr, splitLine[0].strip(), splitLine[1].strip()))
+					wirelessData.append((ipAddr, splitLine[0].strip(), splitLine[1].strip()))
 			itemList = "Type", "Name"
-			uniqueList = "ComputerName, ipAddr, Type, Name"
+			uniqueList = "ipAddr, Type, Name"
 			self.dbEntry(itemList, uniqueList, "wireless_profiles", wirelessData)
 		if self.stout:
 			print(line)

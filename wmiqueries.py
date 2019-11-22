@@ -48,9 +48,6 @@ class WMIConnection:
 		except AttributeError:
 			return "NO RESULT"
 			
-	def getComputerName(self):
-		return computerName
-			
 	def all(self):
 		self.sysData()
 		self.userData()
@@ -78,14 +75,14 @@ class WMIConnection:
 		self.lock.acquire()
 		try:
 			#create table
-			c.execute('''CREATE TABLE ''' + name + ''' (ComputerName TEXT, ipAddr text,''' + (''' {} text,''' * len(itemList)).format(*itemList) +  '''unique (''' + uniqueList + '''))''')
+			c.execute('''CREATE TABLE ''' + name + ''' (ipAddr text,''' + (''' {} text,''' * len(itemList)).format(*itemList) +  '''unique (''' + uniqueList + '''))''')
 		except sqlite3.OperationalError:
 			pass
 		#for each object in the data list
 		for data in dataList:
 			try:
-				#initial values for all table entries
-				values = [computerName, ipAddr]
+				#initial value for all table entries
+				values = [ipAddr]
 				#for each potential element of the object, add it to the values list
 				for item in itemList:
 					values.append(self.check(data, item.replace("__","")))
@@ -98,9 +95,10 @@ class WMIConnection:
 		self.lock.release()
 		
 		
-	def wmiQuery(self, title, wmiObject, itemList, uniqueList, tableName):
+	def wmiQuery(self, title, wmiString, itemList, uniqueList, tableName):
 		if (self.verbose): print("Fetching %s data from %s" % (title, ipAddr))
 		try:
+			wmiObject = eval(wmiString)
 			if self.database != "": self.dbEntry(itemList, uniqueList, tableName, wmiObject)
 			if self.stout:
 				for item in wmiObject:
@@ -112,128 +110,112 @@ class WMIConnection:
 
 	#comments on this method apply to the other WMI methods
 	def sysData(self):
-		if (self.verbose): print("Fetching System Data from %s" % (ipAddr))
-		#get the WMI data
-		sys = [self.w.Win32_ComputerSystem()[0]]
-		
-		#get the computer name
-		global computerName
-		computerName = sys[0].Name
-		
-		#if a db has been provided
-		if self.database != "":
-			#list of every element of the wmi object
-			itemList = ("AdminPasswordStatus", "AutomaticManagedPagefile", "AutomaticResetBootOption", "AutomaticResetCapability", "BootROMSupported", "BootStatus", "BootupState", "Caption", "ChassisBootupState", "ChassisSKUNumber", "CreationClassName", "CurrentTimeZone", "Description", "DNSHostName", "Domain", "DomainRole", "EnableDaylightSavingsTime", "FrontPanelResetStatus", "HypervisorPresent", "InfraredSupported", "KeyboardPasswordStatus", "Manufacturer", "Model", "NetworkServerModeEnabled", "NumberOfLogicalProcessors", "NumberOfProcessors", "OEMArray", "PartOfDomain", "PauseAfterReset", "PCSystemType", "PCSystemTypeEx", "PowerOnPasswordStatus", "PowerState", "PowerSupplyState", "PrimaryOwnerName", "ResetCapability", "ResetCount", "ResetLimit", "Roles", "Status", "SystemFamily", "SystemSKUNumber", "SystemType", "ThermalState", "TotalPhysicalMemory", "UserName", "WakeUpType", "Workgroup")
-			
-			#unique values for the db
-			uniqueList = "ComputerName, ipAddr"
-
-			#call the db entry function
-			self.dbEntry(itemList, uniqueList, "sys_data", sys)			
-						
-		#if standard out is selected, print the WMI data to standard out
-		if self.stout:
-			print(sys)
+		#list of every element of the wmi object
+		itemList = ("ComputerName", "AdminPasswordStatus", "AutomaticManagedPagefile", "AutomaticResetBootOption", "AutomaticResetCapability", "BootROMSupported", "BootStatus", "BootupState", "Caption", "ChassisBootupState", "ChassisSKUNumber", "CreationClassName", "CurrentTimeZone", "Description", "DNSHostName", "Domain", "DomainRole", "EnableDaylightSavingsTime", "FrontPanelResetStatus", "HypervisorPresent", "InfraredSupported", "KeyboardPasswordStatus", "Manufacturer", "Model", "NetworkServerModeEnabled", "NumberOfLogicalProcessors", "NumberOfProcessors", "OEMArray", "PartOfDomain", "PauseAfterReset", "PCSystemType", "PCSystemTypeEx", "PowerOnPasswordStatus", "PowerState", "PowerSupplyState", "PrimaryOwnerName", "ResetCapability", "ResetCount", "ResetLimit", "Roles", "Status", "SystemFamily", "SystemSKUNumber", "SystemType", "ThermalState", "TotalPhysicalMemory", "UserName", "WakeUpType", "Workgroup")			
+		#unique values for the db
+		uniqueList = "ipAddr"
+		#call function to process the WMI query
+		self.wmiQuery("system", "self.w.Win32_ComputerSystem()", itemList, uniqueList, "sys_data")
 		return
 		
 	def userData(self):
 		itemList = ("AccountType", "Caption", "Description", "Disabled", "Domain", "FullName", "LocalAccount", "Lockout", "Name", "PasswordChangeable", "PasswordExpires", "PasswordRequired", "SID", "SIDType", "Status")
-		uniqueList = "ComputerName, ipAddr, SID"
-		self.wmiQuery("Users", self.w.Win32_UserAccount(), itemList, uniqueList, "user_data")
+		uniqueList = "ipAddr, SID"
+		self.wmiQuery("Users", "self.w.Win32_UserAccount()", itemList, uniqueList, "user_data")
 		return
 
 	def netLogin(self):
 		itemList = ("Caption", "Description", "SettingID", "AccountExpires", "AuthorizationFlags", "BadPasswordCount", "CodePage", "Comment", "CountryCode", "Flags", "FullName", "HomeDirectory", "HomeDirectoryDrive", "LastLogoff", "LastLogon", "LogonHours", "LogonServer", "MaximumStorage", "Name", "NumberOfLogons", "Parameters", "PasswordAge", "PasswordExpires", "PrimaryGroupId", "Privileges", "Profile", "ScriptPath", "UnitsPerWeek", "UserComment", "UserId", "UserType", "Workstations")
-		uniqueList = "ComputerName, ipAddr, Caption"
-		self.wmiQuery("net logon", self.w.Win32_NetworkLoginProfile(), itemList, uniqueList, "net_login")
+		uniqueList = "ipAddr, Caption"
+		self.wmiQuery("net logon", "self.w.Win32_NetworkLoginProfile()", itemList, uniqueList, "net_login")
 		return
 				
 	def groupData(self):
 		itemList = ("Caption","Description","Domain","LocalAccount","Name","SID","SIDType","Status")
-		uniqueList = "ComputerName, ipAddr, SID"
-		self.wmiQuery("group", self.w.Win32_Group(), itemList, uniqueList, "group_data")
+		uniqueList = "ipAddr, SID"
+		self.wmiQuery("group", "self.w.Win32_Group()", itemList, uniqueList, "group_data")
 		return	
 
 	def logicalDisks(self):		
 		itemList = ("Access", "Availability", "BlockSize", "Caption", "Compressed", "ConfigManagerErrorCode", "ConfigManagerUserConfig", "CreationClassName", "Description", "DeviceID", "DriveType", "ErrorCleared", "ErrorDescription", "ErrorMethodology", "FileSystem", "FreeSpace", "InstallDate", "LastErrorCode", "MaximumComponentLength", "MediaType", "Name", "NumberOfBlocks", "PNPDeviceID", "PowerManagementSupported", "ProviderName", "Purpose", "QuotasDisabled", "QuotasIncomplete", "QuotasRebuilding", "Size", "Status", "StatusInfo", "SupportsDiskQuotas", "SupportsFileBasedCompression", "SystemCreationClassName", "SystemName", "VolumeDirty", "VolumeName", "VolumeSerialNumber")
-		uniqueList = "ComputerName, ipAddr, Caption"
-		self.wmiQuery("logical disk ", self.w.Win32_LogicalDisk(), itemList, uniqueList, "logical_disks")
+		uniqueList = "ipAddr, Caption"
+		self.wmiQuery("logical disk ", "self.w.Win32_LogicalDisk()", itemList, uniqueList, "logical_disks")
 		return
 		
 	def timeZone(self):
 		itemList = ("Caption", "Description", "SettingID", "Bias", "DaylightBias", "DaylightDay", "DaylightDayOfWeek", "DaylightHour", "DaylightMillisecond", "DaylightMinute", "DaylightMonth", "DaylightName", "DaylightSecond", "DaylightYear", "StandardBias", "StandardDay", "StandardDayOfWeek", "StandardHour", "StandardMillisecond", "StandardMinute", "StandardMonth", "StandardName", "StandardSecond", "StandardYear")
-		uniqueList = "ComputerName, ipAddr"
-		self.wmiQuery("time zone", self.w.Win32_TimeZone(), itemList, uniqueList, "time_zone")
+		uniqueList = "ipAddr"
+		self.wmiQuery("time zone", "self.w.Win32_TimeZone()", itemList, uniqueList, "time_zone")
 		return
 		
 	def startupPrograms(self):
 		itemList = ("Caption", "Description", "SettingID", "Command", "Location", "Name", "User", "UserSID")
-		uniqueList = "ComputerName, ipAddr, Caption, UserSID"
-		self.wmiQuery("startup program", self.w.Win32_StartupCommand(), itemList, uniqueList, "startup_programs")
+		uniqueList = "ipAddr, Caption, UserSID"
+		self.wmiQuery("startup program", "self.w.Win32_StartupCommand()", itemList, uniqueList, "startup_programs")
 		return
 
 	def userProfiles(self):
 		itemList = ("SID", "LocalPath", "Loaded", "refCount", "Special", "RoamingConfigured", "RoamingPath", "RoamingPreference", "Status", "LastUseTime", "LastDownloadTime", "LastUploadTime", "HealthStatus", "LastAttemptedProfileDownloadTime", "LastAttemptedProfileUploadTime", "LastBackgroundRegistryUploadTime", "AppDataRoaming", "Desktop", "StartMenu", "Documents", "Pictures", "Music", "Videos", "Favorites", "Contacts", "Downloads", "Links", "Searches", "SavedGames")
-		uniqueList = "ComputerName, ipAddr, SID, LastUseTime"
-		self.wmiQuery("user profile", self.w.Win32_UserProfile(), itemList, uniqueList, "user_profiles")
+		uniqueList = "ipAddr, SID, LastUseTime"
+		self.wmiQuery("user profile", "self.w.Win32_UserProfile()", itemList, uniqueList, "user_profiles")
 		return		
 		
 	def networkAdapters(self):
 		itemList = ("Caption", "Description", "SettingID", "ArpAlwaysSourceRoute", "ArpUseEtherSNAP", "DatabasePath", "DeadGWDetectEnabled", "DefaultIPGateway", "DefaultTOS", "DefaultTTL", "DHCPEnabled", "DHCPLeaseExpires", "DHCPLeaseObtained", "DHCPServer", "DNSDomain", "DNSDomainSuffixSearchOrder", "DNSEnabledForWINSResolution", "DNSHostName", "DNSServerSearchOrder", "DomainDNSRegistrationEnabled", "ForwardBufferMemory", "FullDNSRegistrationEnabled", "GatewayCostMetric", "IGMPLevel", "Index__", "InterfaceIndex", "IPAddress", "IPConnectionMetric", "IPEnabled", "IPFilterSecurityEnabled", "IPPortSecurityEnabled", "IPSecPermitIPProtocols", "IPSecPermitTCPPorts", "IPSecPermitUDPPorts", "IPSubnet", "IPUseZeroBroadcast", "IPXAddress", "IPXEnabled", "IPXFrameType", "IPXMediaType", "IPXNetworkNumber", "IPXVirtualNetNumber", "KeepAliveInterval", "KeepAliveTime", "MACAddress", "MTU", "NumForwardPackets", "PMTUBHDetectEnabled", "PMTUDiscoveryEnabled", "ServiceName", "TcpipNetbiosOptions", "TcpMaxConnectRetransmissions", "TcpMaxDataRetransmissions", "TcpNumConnections", "TcpUseRFC1122UrgentPointer", "TcpWindowSize", "WINSEnableLMHostsLookup", "WINSHostLookupFile", "WINSPrimaryServer", "WINSScopeID", "WINSSecondaryServer")
-		uniqueList = "ComputerName, ipAddr, MACAddress"
-		self.wmiQuery("network adapter", self.w.Win32_NetworkAdapterConfiguration(), itemList, uniqueList, "network_adapters")
+		uniqueList = "ipAddr, MACAddress"
+		self.wmiQuery("network adapter", "self.w.Win32_NetworkAdapterConfiguration()", itemList, uniqueList, "network_adapters")
 		return
 
 	def processes(self):
 		itemList = ("CreationClassName", "Caption", "CommandLine", "CreationDate", "CSCreationClassName", "CSName", "Description", "ExecutablePath", "ExecutionState", "Handle", "HandleCount", "InstallDate", "KernelModeTime", "MaximumWorkingSetSize", "MinimumWorkingSetSize", "Name", "OSCreationClassName", "OSName", "OtherOperationCount", "OtherTransferCount", "PageFaults", "PageFileUsage", "ParentProcessId", "PeakPageFileUsage", "PeakVirtualSize", "PeakWorkingSetSize", "Priority", "PrivatePageCount", "ProcessId", "QuotaNonPagedPoolUsage", "QuotaPagedPoolUsage", "QuotaPeakNonPagedPoolUsage", "QuotaPeakPagedPoolUsage", "ReadOperationCount", "ReadTransferCount", "SessionId", "Status", "TerminationDate", "ThreadCount", "UserModeTime", "VirtualSize", "WindowsVersion", "WorkingSetSize", "WriteOperationCount", "WriteTransferCount")
-		uniqueList = "ComputerName, ipAddr, SessionId, ProcessId"
-		self.wmiQuery("process", self.w.win32_process(), itemList, uniqueList, "processes")
+		uniqueList = "ipAddr, SessionId, ProcessId"
+		self.wmiQuery("process", "self.w.win32_process()", itemList, uniqueList, "processes")
 		return
 		
 	def services(self):
 		itemList = ("AcceptPause", "AcceptStop", "Caption", "CheckPoint", "CreationClassName", "DelayedAutoStart", "Description", "DesktopInteract", "DisplayName", "ErrorControl", "ExitCode", "InstallDate", "Name", "PathName", "serviceId", "ServiceSpecificExitCode", "ServiceType", "Started", "StartMode", "StartName", "State", "Status", "SystemCreationClassName", "SystemName", "TagId", "WaitHint")
-		uniqueList = "ComputerName, ipAddr, serviceId, Caption"
-		self.wmiQuery("services", self.w.win32_Service(), itemList, uniqueList, "services")
+		uniqueList = "ipAddr, serviceId, Caption"
+		self.wmiQuery("services", "self.w.win32_Service()", itemList, uniqueList, "services")
 		return	
 		
 	def shares(self):
 		itemList = ("Caption", "Description", "InstallDate", "Status", "AccessMask", "AllowMaximum", "MaximumAllowed", "Name", "Path", "Type")
-		uniqueList = "ComputerName, ipAddr, Path"
-		self.wmiQuery("shares", self.w.Win32_Share(), itemList, uniqueList, "shares")
+		uniqueList = "ipAddr, Path"
+		self.wmiQuery("shares", "self.w.Win32_Share()", itemList, uniqueList, "shares")
 		return
 
 	def physicalDisks(self):
 		itemList = ("Availability", "BytesPerSector", "Capabilities", "CapabilityDescriptions", "Caption", "CompressionMethod", "ConfigManagerErrorCode", "ConfigManagerUserConfig", "CreationClassName", "DefaultBlockSize", "Description", "DeviceID", "ErrorCleared", "ErrorDescription", "ErrorMethodology", "FirmwareRevision", "Index__", "InstallDate", "InterfaceType", "LastErrorCode", "Manufacturer", "MaxBlockSize", "MaxMediaSize", "MediaLoaded", "MediaType", "MinBlockSize", "Model", "Name", "NeedsCleaning", "NumberOfMediaSupported", "Partitions", "PNPDeviceID", "PowerManagementCapabilities", "PowerManagementSupported", "SCSIBus", "SCSILogicalUnit", "SCSIPort", "SCSITargetId", "SectorsPerTrack", "SerialNumber", "Signature", "Size", "Status", "StatusInfo", "SystemCreationClassName", "SystemName", "TotalCylinders", "TotalHeads", "TotalSectors", "TotalTracks", "TracksPerCylinder")
-		uniqueList = "ComputerName, ipAddr, DeviceID"
-		self.wmiQuery("physical disk", self.w.Win32_DiskDrive(), itemList, uniqueList, "physical_disks")
+		uniqueList = "ipAddr, DeviceID"
+		self.wmiQuery("physical disk", "self.w.Win32_DiskDrive()", itemList, uniqueList, "physical_disks")
 		return
 		
 	def physicalMemory(self):
 		itemList = ("Attributes", "BankLabel", "Capacity", "Caption", "ConfiguredClockSpeed", "ConfiguredVoltage", "CreationClassName", "DataWidth", "Description", "DeviceLocator", "FormFactor", "HotSwappable", "InstallDate", "InterleaveDataDepth", "InterleavePosition", "Manufacturer", "MaxVoltage", "MemoryType", "MinVoltage", "Model", "Name", "OtherIdentifyingInfo", "PartNumber", "PositionInRow", "PoweredOn", "Removable", "Replaceable", "SerialNumber", "SKU", "SMBIOSMemoryType", "Speed", "Status", "Tag", "TotalWidth", "TypeDetail", "Version")
-		uniqueList = "ComputerName, ipAddr, SerialNumber, DeviceLocator"
-		self.wmiQuery("physical memory", self.w.Win32_PhysicalMemory(), itemList, uniqueList, "physical_memory")
+		uniqueList = "ipAddr, SerialNumber, DeviceLocator"
+		self.wmiQuery("physical memory", "self.w.Win32_PhysicalMemory()", itemList, uniqueList, "physical_memory")
 		return
 		
 	def patches(self):
 		itemList = ("Caption", "Description", "InstallDate", "Name", "Status", "CSName", "FixComments", "HotFixID", "InstalledBy", "InstalledOn", "ServicePackInEffect")
-		uniqueList = "ComputerName, ipAddr, Caption"
-		self.wmiQuery("patch", self.w.Win32_QuickFixEngineering(), itemList, uniqueList, "patch_data")
+		uniqueList = "ipAddr, Caption"
+		self.wmiQuery("patch", "self.w.Win32_QuickFixEngineering()", itemList, uniqueList, "patch_data")
 		return		
 		
 	def bios(self):
 		itemList = ("BiosCharacteristics", "BIOSVersion", "BuildNumber", "Caption", "CodeSet", "CurrentLanguage", "Description", "EmbeddedControllerMajorVersion", "EmbeddedControllerMinorVersion", "IdentificationCode", "InstallableLanguages", "InstallDate", "LanguageEdition", "ListOfLanguages", "Manufacturer", "Name", "OtherTargetOS", "PrimaryBIOS", "ReleaseDate", "SerialNumber", "SMBIOSBIOSVersion", "SMBIOSMajorVersion", "SMBIOSMinorVersion", "SMBIOSPresent", "SoftwareElementID", "SoftwareElementState", "Status", "SystemBiosMajorVersion", "SystemBiosMinorVersion", "TargetOperatingSystem", "Version")
-		uniqueList = "ComputerName, ipAddr, BIOSVersion"
-		self.wmiQuery("BIOS", self.w.Win32_BIOS(), itemList, uniqueList, "bios_data")
+		uniqueList = "ipAddr, BIOSVersion"
+		self.wmiQuery("BIOS", "self.w.Win32_BIOS()", itemList, uniqueList, "bios_data")
 		return
 		
 	def pnp(self):
 		itemList = ("Availability", "Caption", "ClassGuid", "CompatibleID", "ConfigManagerErrorCode", "ConfigManagerUserConfig", "CreationClassName", "Description", "DeviceID", "ErrorCleared", "ErrorDescription", "HardwareID", "InstallDate", "LastErrorCode", "Manufacturer", "Name", "PNPClass", "PNPDeviceID", "PowerManagementCapabilities", "PowerManagementSupported", "Present", "Service", "Status", "StatusInfo", "SystemCreationClassName", "SystemName")
-		uniqueList = "ComputerName, ipAddr, ClassGuid"
-		self.wmiQuery("PlugNPlay", self.w.Win32_PNPEntity(), itemList, uniqueList, "plugnplay")
+		uniqueList = "ipAddr, ClassGuid"
+		self.wmiQuery("PlugNPlay", "self.w.Win32_PNPEntity()", itemList, uniqueList, "plugnplay")
 		return
 		
 	def drivers(self):
 		itemList = ("AcceptPause", "AcceptStop", "Caption", "CreationClassName", "Description", "DesktopInteract", "DisplayName", "ErrorControl", "ExitCode", "InstallDate", "Name", "PathName", "ServiceSpecificExitCode", "ServiceType", "Started", "StartMode", "StartName", "State", "Status", "SystemCreationClassName", "SystemName", "TagId")
-		uniqueList = "ComputerName, ipAddr, PathName"
-		self.wmiQuery("driver", self.w.Win32_SystemDriver(), itemList, uniqueList, "system_drivers")
+		uniqueList = "ipAddr, PathName"
+		self.wmiQuery("driver", "self.w.Win32_SystemDriver()", itemList, uniqueList, "system_drivers")
 		return			
