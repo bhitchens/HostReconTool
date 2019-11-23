@@ -78,7 +78,7 @@ def analyze(ipaddr, verbose, database, stout, args, lock):
 		return
 		
 	#Run functions for all supplied flags
-	if (args.users or args.netlogin or args.groups or args.ldisks or args.timezone or args.startup or args.profiles or args.adapters or args.process or args.services or args.shares or args.pdisks or args.memory or args.patches or args.bios or args.pnp or args.drivers or args.sysinfo or args.processors):
+	if (args.users or args.netlogin or args.groups or args.ldisks or args.timezone or args.startup or args.profiles or args.adapters or args.process or args.services or args.shares or args.pdisks or args.memory or args.patches or args.bios or args.pnp or args.drivers or args.sysinfo or args.processors or args.os or args.products):
 		connection = wmiConnect(ipaddr, verbose, lock, database, stout)
 		if wmiSuccess:			
 			if args.sysinfo: connection.sysData()
@@ -100,6 +100,8 @@ def analyze(ipaddr, verbose, database, stout, args, lock):
 			if args.pnp: connection.pnp()
 			if args.drivers: connection.drivers()
 			if args.processors: connection.processors()
+			if args.os: connection.operatingSystem()
+			if args.products: connection.products()
 	
 	if (args.ports or args.arp or args.wireless or args.routes):
 		psexec = psexecConnect(ipaddr, verbose, lock, database, stout)
@@ -131,8 +133,6 @@ def main():
 	parser.add_argument("-o", "--stout", action='store_true', help="Send results to Standard Out")
 	parser.add_argument("--verbose", action='store_true', help="Print verbose results")
 	parser.add_argument("-i", "--ipaddr", nargs=1, help="IP Address or CIDR-Notation range of IP Addresses. Exclude for Local Machine")
-	parser.add_argument("--username", nargs=1, help="User Name for remote system (must be used with -i)")
-	parser.add_argument("--password", nargs=1, help="Password for remote system (must be used with -i and -u)")
 	parser.add_argument("-A", "--all", action='store_true', help="Run all switches")
 	parser.add_argument("-y", "--sysinfo", action='store_true', help="Gather System Information")
 	parser.add_argument("-u", "--users", action='store_true', help="User account data")
@@ -157,6 +157,8 @@ def main():
 	parser.add_argument("--pnp", action='store_true', help="Plug-n-play Devices Data")
 	parser.add_argument("--drivers", action='store_true', help="Drivers Data")
 	parser.add_argument("--processors", action='store_true', help="Processor Data")
+	parser.add_argument("--os", action='store_true', help="Operating System Data")
+	parser.add_argument("--products", action='store_true', help="Products Data (Slow - Not Included in --all")
 	
 	args = parser.parse_args()
 		

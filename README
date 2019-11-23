@@ -18,9 +18,9 @@ SMB allowed.
   -o, --stout           Send results to Standard Out
   --verbose             Print verbose results
   -i IP, --ipaddr IP	IP Address or CIDR-Notation range of IP Addresses. Exclude for Local Machine
-  --username            User Name for remote system (must be used with -r)
-  --password            Password for remote system (must be used with -r and -u)
+  
   -A, --all             Run all switches
+  
   -y, --sysinfo         Gather System Information
   -u, --users           User account data
   -n, --netlogin        Network Login data
@@ -38,8 +38,12 @@ SMB allowed.
   -p, --ports           Open Ports
   --patches             Currently Applied Patches
   --arp                 Arp Table Data
-  --routes              Routing Table Data
+  --routes              Routing Table and Interface Data
   -w, --wireless        Wireless Connection Data
   -b, --bios            BIOS Data
   --pnp                 Plug-n-play Devices Data
   --drivers             Drivers Data
+  --processors          Processor Data
+  --os                  Operating System Data
+  
+  --products            Products Data (Slow - Not Included in --all

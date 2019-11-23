@@ -68,6 +68,7 @@ class WMIConnection:
 		self.pnp()
 		self.drivers()
 		self.processors()
+		self.operatingSystem()
 		
 	#enter data from wmi query into db
 	def dbEntry(self, itemList, uniqueList, name, dataList):
@@ -133,10 +134,10 @@ class WMIConnection:
 		return
 				
 	def groupData(self):
-		itemList = ("Caption","Description","Domain","LocalAccount","Name","SID","SIDType","Status")
+		itemList = ("Caption", "Description", "Domain", "LocalAccount", "Name", "SID", "SIDType", "Status")
 		uniqueList = "ipAddr, SID"
 		self.wmiQuery("group", "self.w.Win32_Group()", itemList, uniqueList, "group_data")
-		return	
+		return
 
 	def logicalDisks(self):		
 		itemList = ("Access", "Availability", "BlockSize", "Caption", "Compressed", "ConfigManagerErrorCode", "ConfigManagerUserConfig", "CreationClassName", "Description", "DeviceID", "DriveType", "ErrorCleared", "ErrorDescription", "ErrorMethodology", "FileSystem", "FreeSpace", "InstallDate", "LastErrorCode", "MaximumComponentLength", "MediaType", "Name", "NumberOfBlocks", "PNPDeviceID", "PowerManagementSupported", "ProviderName", "Purpose", "QuotasDisabled", "QuotasIncomplete", "QuotasRebuilding", "Size", "Status", "StatusInfo", "SupportsDiskQuotas", "SupportsFileBasedCompression", "SystemCreationClassName", "SystemName", "VolumeDirty", "VolumeName", "VolumeSerialNumber")
@@ -226,3 +227,13 @@ class WMIConnection:
 		itemList = ("AddressWidth", "Architecture", "AssetTag", "Availability", "Caption", "Characteristics", "ConfigManagerErrorCode", "ConfigManagerUserConfig", "CpuStatus", "CreationClassName", "CurrentClockSpeed", "CurrentVoltage", "DataWidth", "Description", "DeviceID", "ErrorCleared", "ErrorDescription", "ExtClock", "Family", "InstallDate", "L2CacheSize", "L2CacheSpeed", "L3CacheSize", "L3CacheSpeed", "LastErrorCode", "Level", "LoadPercentage", "Manufacturer", "MaxClockSpeed", "Name", "NumberOfCores", "NumberOfEnabledCore", "NumberOfLogicalProcessors", "OtherFamilyDescription", "PartNumber", "PNPDeviceID", "PowerManagementCapabilities", "PowerManagementSupported", "ProcessorId", "ProcessorType", "Revision", "Role", "SecondLevelAddressTranslationExtensions", "SerialNumber", "SocketDesignation", "Status", "StatusInfo", "Stepping", "SystemCreationClassName", "SystemName", "ThreadCount", "UniqueId", "UpgradeMethod", "Version", "VirtualizationFirmwareEnabled", "VMMonitorModeExtensions", "VoltageCaps")
 		uniqueList = "ipAddr, SerialNumber"
 		self.wmiQuery("processor", "self.w.Win32_Processor()", itemList, uniqueList, "processors")
+		
+	def operatingSystem(self):
+		itemList = ("BootDevice", "BuildNumber", "BuildType", "Caption", "CodeSet", "CountryCode", "CreationClassName", "CSCreationClassName", "CSDVersion", "CSName", "CurrentTimeZone", "DataExecutionPrevention_Available", "DataExecutionPrevention_32BitApplications", "DataExecutionPrevention_Drivers", "DataExecutionPrevention_SupportPolicy", "Debug", "Description", "Distributed", "EncryptionLevel", "FreePhysicalMemory", "FreeSpaceInPagingFiles", "FreeVirtualMemory", "InstallDate", "LargeSystemCache", "LastBootUpTime", "LocalDateTime", "Locale", "Manufacturer", "MaxNumberOfProcesses", "MaxProcessMemorySize", "MUILanguages", "Name", "NumberOfLicensedUsers", "NumberOfProcesses", "NumberOfUsers", "OperatingSystemSKU", "Organization", "OSArchitecture", "OSLanguage", "OSProductSuite", "OSType", "OtherTypeDescription", "PAEEnabled", "PlusProductID", "PlusVersionNumber", "PortableOperatingSystem", "Primary__", "ProductType", "RegisteredUser", "SerialNumber", "ServicePackMajorVersion", "ServicePackMinorVersion", "SizeStoredInPagingFiles", "Status", "SuiteMask", "SystemDevice", "SystemDirectory", "SystemDrive", "TotalSwapSpaceSize", "TotalVirtualMemorySize", "TotalVisibleMemorySize", "Version", "WindowsDirectory", "QuantumLength", "QuantumType")
+		uniqueList = "ipAddr"
+		self.wmiQuery("operating system", "self.w.Win32_OperatingSystem()", itemList, uniqueList, "operating_system")	
+		
+	def products(self):
+		itemList = ("AssignmentType", "Caption", "Description", "IdentifyingNumber", "InstallDate", "InstallDate2", "InstallLocation", "InstallState", "HelpLink", "HelpTelephone", "InstallSource", "Language", "LocalPackage", "Name", "PackageCache", "PackageCode", "PackageName", "ProductID", "RegOwner", "RegCompany", "SKUNumber", "Transforms", "URLInfoAbout", "URLUpdateInfo", "Vendor", "WordCount", "Version")
+		uniqueList = "ipAddr, IdentifyingNumber"
+		self.wmiQuery("products", "self.w.Win32_Product()", itemList, uniqueList, "products")
