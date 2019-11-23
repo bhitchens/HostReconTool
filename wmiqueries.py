@@ -49,7 +49,7 @@ class WMIConnection:
 			return "NO RESULT"
 			
 	def all(self):
-		self.sysData()
+		self.sysData()	
 		self.userData()
 		self.netLogin()
 		self.groupData()
@@ -66,6 +66,8 @@ class WMIConnection:
 		self.patches()
 		self.bios()
 		self.pnp()
+		self.drivers()
+		self.processors()
 		
 	#enter data from wmi query into db
 	def dbEntry(self, itemList, uniqueList, name, dataList):
@@ -218,4 +220,9 @@ class WMIConnection:
 		itemList = ("AcceptPause", "AcceptStop", "Caption", "CreationClassName", "Description", "DesktopInteract", "DisplayName", "ErrorControl", "ExitCode", "InstallDate", "Name", "PathName", "ServiceSpecificExitCode", "ServiceType", "Started", "StartMode", "StartName", "State", "Status", "SystemCreationClassName", "SystemName", "TagId")
 		uniqueList = "ipAddr, PathName"
 		self.wmiQuery("driver", "self.w.Win32_SystemDriver()", itemList, uniqueList, "system_drivers")
-		return			
+		return
+		
+	def processors(self):
+		itemList = ("AddressWidth", "Architecture", "AssetTag", "Availability", "Caption", "Characteristics", "ConfigManagerErrorCode", "ConfigManagerUserConfig", "CpuStatus", "CreationClassName", "CurrentClockSpeed", "CurrentVoltage", "DataWidth", "Description", "DeviceID", "ErrorCleared", "ErrorDescription", "ExtClock", "Family", "InstallDate", "L2CacheSize", "L2CacheSpeed", "L3CacheSize", "L3CacheSpeed", "LastErrorCode", "Level", "LoadPercentage", "Manufacturer", "MaxClockSpeed", "Name", "NumberOfCores", "NumberOfEnabledCore", "NumberOfLogicalProcessors", "OtherFamilyDescription", "PartNumber", "PNPDeviceID", "PowerManagementCapabilities", "PowerManagementSupported", "ProcessorId", "ProcessorType", "Revision", "Role", "SecondLevelAddressTranslationExtensions", "SerialNumber", "SocketDesignation", "Status", "StatusInfo", "Stepping", "SystemCreationClassName", "SystemName", "ThreadCount", "UniqueId", "UpgradeMethod", "Version", "VirtualizationFirmwareEnabled", "VMMonitorModeExtensions", "VoltageCaps")
+		uniqueList = "ipAddr, SerialNumber"
+		self.wmiQuery("processor", "self.w.Win32_Processor()", itemList, uniqueList, "processors")

@@ -3,7 +3,7 @@ from multiprocessing import Process, Lock
 import sys, netaddr, wmiqueries, psexecqueries, sqlite3, argparse
 import importlib
 
-def wmiCall(ipaddr, verbose, lock, database, stout, function):
+def wmiConnect(ipaddr, verbose, lock, database, stout):
 	global wmiFail
 	global connection
 	if connection is None and not wmiFail:
@@ -13,7 +13,6 @@ def wmiCall(ipaddr, verbose, lock, database, stout, function):
 			connection.database = database
 			connection.stout = stout
 			connection.connect()
-			eval("connection.%s" % (function))
 		except Exception:
 			lock.acquire()
 			if ipaddr == "":
@@ -22,9 +21,10 @@ def wmiCall(ipaddr, verbose, lock, database, stout, function):
 				print("Failed to make WMI connection to " + str(ipaddr))
 			lock.release()
 			wmiFail = True
+	
 	return connection
 		
-def psexecCall(ipaddr, verbose, lock, database, stout, function):
+def psexecConnect(ipaddr, verbose, lock, database, stout):
 	global pseFail
 	global psexec
 	if psexec is None and not pseFail:
@@ -35,7 +35,6 @@ def psexecCall(ipaddr, verbose, lock, database, stout, function):
 			psexec.stout = stout
 			#check to see if psexec is functional
 			psexec.testPsexec()
-			eval("psexec.%s" % (function))
 		except Exception:
 			lock.acquire()
 			if ipaddr == "":
@@ -70,35 +69,43 @@ def analyze(ipaddr, verbose, database, stout, args, lock):
 	#Run functions based on switches
 	#check for -A/--all
 	if "-A" in sys.argv or "--all" in sys.argv:
-		if not wmiFail: wmiCall(ipaddr, verbose, lock, database, stout, "all()")
-		if not pseFail: psexecCall(ipaddr, verbose, lock, database, stout, "all()")
+		connection = wmiConnect(ipaddr, verbose, lock, database, stout)
+		psexec = psexecConnect(ipaddr, verbose, lock, database, stout)
+		if not wmiFail: connection.all()
+		if not pseFail: psexec.all()
 		return
 		
 	#Run functions for all supplied flags
-	if not wmiFail:
-		if (args.users): wmiCall(ipaddr, verbose, lock, database, stout, "userData()")
-		if (args.netlogin): wmiCall(ipaddr, verbose, lock, database, stout, "netLogin()")
-		if (args.groups): wmiCall(ipaddr, verbose, lock, database, stout, "groupData()")
-		if (args.ldisks): wmiCall(ipaddr, verbose, lock, database, stout, "logicalDisks()")
-		if (args.timezone): wmiCall(ipaddr, verbose, lock, database, stout, "timeZone()")
-		if (args.startup): wmiCall(ipaddr, verbose, lock, database, stout, "startupPrograms()")
-		if (args.profiles): wmiCall(ipaddr, verbose, lock, database, stout, "userProfiles()")
-		if (args.adapters): wmiCall(ipaddr, verbose, lock, database, stout, "networkAdapters()")
-		if (args.process): wmiCall(ipaddr, verbose, lock, database, stout, "processes()")
-		if (args.services): wmiCall(ipaddr, verbose, lock, database, stout, "services()")
-		if (args.shares): wmiCall(ipaddr, verbose, lock, database, stout, "shares()")
-		if (args.pdisks): wmiCall(ipaddr, verbose, lock, database, stout, "physicalDisks()")
-		if (args.memory): wmiCall(ipaddr, verbose, lock, database, stout, "physicalMemory()")
-		if (args.patches): wmiCall(ipaddr, verbose, lock, database, stout, "patches()")
-		if (args.bios): wmiCall(ipaddr, verbose, lock, database, stout, "bios()")
-		if (args.pnp): wmiCall(ipaddr, verbose, lock, database, stout, "pnp()")
-		if (args.drivers): wmiCall(ipaddr, verbose, lock, database, stout, "drivers()")
-		if args.sysinfo: wmiCall(ipaddr, verbose, lock, database, stout, "sysData()")
-	if not pseFail:
-		if (args.ports): psexecCall(ipaddr, verbose, lock, database, stout, "ports()")
-		if (args.arp): psexecCall(ipaddr, verbose, lock, database, stout, "arp()")
-		if (args.wireless): psexecCall(ipaddr, verbose, lock, database, stout, "wireless()")
-		if (args.routes): psexecCall(ipaddr, verbose, lock, database, stout, "route()")
+	if (args.users or args.netlogin or args.groups or args.ldisks or args.timezone or args.startup or args.profiles or args.adapters or args.process or args.services or args.shares or args.pdisks or args.memory or args.patches or args.bios or args.pnp or args.drivers or args.sysinfo or args.processors):
+		connection = wmiConnect(ipaddr, verbose, lock, database, stout)
+		if not wmiFail:			
+			if args.sysinfo: connection.sysData()
+			if args.users: connection.userData()
+			if args.netlogin: connection.netLogin()
+			if args.groups: connection.groupData()
+			if args.ldisks: connection.logicalDisks()
+			if args.timezone: connection.timeZone()
+			if args.startup: connection.startupPrograms()
+			if args.profiles: connection.userProfiles()
+			if args.adapters: connection.networkAdapters()
+			if args.process: connection.processes()
+			if args.services: connection.services()
+			if args.shares: connection.shares()
+			if args.pdisks: connection.physicalDisks()
+			if args.memory: connection.physicalMemory()
+			if args.patches: connection.patches()
+			if args.bios: connection.bios()
+			if args.pnp: connection.pnp()
+			if args.drivers: connection.drivers()
+			if args.processors: connection.processors()
+	
+	if (args.ports or args.arp or args.wireless or args.routes):
+		psexec = psexecConnect(ipaddr, verbose, lock, database, stout)
+		if not pseFail:
+			if (args.ports): psexec.ports()
+			if (args.arp): psexec.arp()
+			if (args.wireless): psexec.wireless()
+			if (args.routes): psexec.route()
 		
 	lock.acquire()
 	if ipaddr == "":
@@ -147,6 +154,7 @@ def main():
 	parser.add_argument("-b", "--bios", action='store_true', help="BIOS Data")
 	parser.add_argument("--pnp", action='store_true', help="Plug-n-play Devices Data")
 	parser.add_argument("--drivers", action='store_true', help="Drivers Data")
+	parser.add_argument("--processors", action='store_true', help="Processor Data")
 	
 	args = parser.parse_args()
 		
