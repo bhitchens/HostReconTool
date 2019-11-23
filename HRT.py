@@ -4,15 +4,16 @@ import sys, netaddr, wmiqueries, psexecqueries, sqlite3, argparse
 import importlib
 
 def wmiConnect(ipaddr, verbose, lock, database, stout):
-	global wmiFail
+	global wmiSuccess
 	global connection
-	if connection is None and not wmiFail:
+	if connection is None and not wmiSuccess:
 		try:
 			#Create wmi object and set its database name and stout boolean
 			connection = wmiqueries.WMIConnection(ipaddr, verbose, lock, database)	
 			connection.database = database
 			connection.stout = stout
 			connection.connect()
+			wmiSuccess = True
 		except Exception:
 			lock.acquire()
 			if ipaddr == "":
@@ -20,14 +21,14 @@ def wmiConnect(ipaddr, verbose, lock, database, stout):
 			else:
 				print("Failed to make WMI connection to " + str(ipaddr))
 			lock.release()
-			wmiFail = True
+			wmiSuccess = False
 	
 	return connection
 		
 def psexecConnect(ipaddr, verbose, lock, database, stout):
-	global pseFail
+	global pseSuccess
 	global psexec
-	if psexec is None and not pseFail:
+	if psexec is None and not pseSuccess:
 		try:
 			#create psexec object and set its database name, stout boolean
 			psexec = psexecqueries.PSExecQuery(ipaddr, verbose, lock, database)
@@ -35,6 +36,7 @@ def psexecConnect(ipaddr, verbose, lock, database, stout):
 			psexec.stout = stout
 			#check to see if psexec is functional
 			psexec.testPsexec()
+			pseSuccess = True
 		except Exception:
 			lock.acquire()
 			if ipaddr == "":
@@ -42,20 +44,20 @@ def psexecConnect(ipaddr, verbose, lock, database, stout):
 			else:
 				print("Failed to make psexec connection to " + str(ipaddr))
 			lock.release()
-			pseFail = True
+			pseSuccess = False
 	return psexec
 
 #Sets up connections and triggers runSwitches
 def analyze(ipaddr, verbose, database, stout, args, lock):
 	#declare neccessary globals
-	global wmiFail
-	global pseFail
+	global wmiSuccess
+	global pseSuccess
 	global connection
 	global psexec
 	
 	#initialize globals
-	wmiFail = False
-	pseFail = False
+	wmiSuccess = False
+	pseSuccess = False
 	connection = None
 	psexec = None
 	
@@ -71,14 +73,14 @@ def analyze(ipaddr, verbose, database, stout, args, lock):
 	if "-A" in sys.argv or "--all" in sys.argv:
 		connection = wmiConnect(ipaddr, verbose, lock, database, stout)
 		psexec = psexecConnect(ipaddr, verbose, lock, database, stout)
-		if not wmiFail: connection.all()
-		if not pseFail: psexec.all()
+		if wmiSuccess: connection.all()
+		if pseSuccess: psexec.all()
 		return
 		
 	#Run functions for all supplied flags
 	if (args.users or args.netlogin or args.groups or args.ldisks or args.timezone or args.startup or args.profiles or args.adapters or args.process or args.services or args.shares or args.pdisks or args.memory or args.patches or args.bios or args.pnp or args.drivers or args.sysinfo or args.processors):
 		connection = wmiConnect(ipaddr, verbose, lock, database, stout)
-		if not wmiFail:			
+		if wmiSuccess:			
 			if args.sysinfo: connection.sysData()
 			if args.users: connection.userData()
 			if args.netlogin: connection.netLogin()
@@ -101,7 +103,7 @@ def analyze(ipaddr, verbose, database, stout, args, lock):
 	
 	if (args.ports or args.arp or args.wireless or args.routes):
 		psexec = psexecConnect(ipaddr, verbose, lock, database, stout)
-		if not pseFail:
+		if pseSuccess:
 			if (args.ports): psexec.ports()
 			if (args.arp): psexec.arp()
 			if (args.wireless): psexec.wireless()
