@@ -9,9 +9,7 @@ def wmiConnect(ipaddr, verbose, lock, database, stout):
 	if connection is None and not wmiSuccess:
 		try:
 			#Create wmi object and set its database name and stout boolean
-			connection = wmiqueries.WMIConnection(ipaddr, verbose, lock, database)	
-			connection.database = database
-			connection.stout = stout
+			connection = wmiqueries.WMIConnection(ipaddr, verbose, lock, database, stout)
 			connection.connect()
 			wmiSuccess = True
 		except Exception:
@@ -31,9 +29,7 @@ def psexecConnect(ipaddr, verbose, lock, database, stout):
 	if psexec is None and not pseSuccess:
 		try:
 			#create psexec object and set its database name, stout boolean
-			psexec = psexecqueries.PSExecQuery(ipaddr, verbose, lock, database)
-			psexec.database = database
-			psexec.stout = stout
+			psexec = psexecqueries.PSExecQuery(ipaddr, verbose, lock, database, stout)
 			#check to see if psexec is functional
 			psexec.testPsexec()
 			pseSuccess = True

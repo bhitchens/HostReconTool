@@ -2,19 +2,14 @@ import wmi, sqlite3, sys, math, netaddr, socket
 
 class WMIConnection:
 	
-	ipAddr = ""
-	database = ""
-	computerName = ""
-	stout = False
-	
-	def __init__(self, remote, verbose, lock, database):
+	def __init__(self, remote, verbose, lock, database, stout):
 		self.remote = remote
 		self.w = None
 		self.verbose = verbose
 		self.lock = lock
 		self.database = database
-		#global ipAddr
-		#if a remote IP has been provided, set the ipAddr global to that IP
+		self.stout = stout
+		#if a remote IP has been provided, set ipAddr to that IP
 		if remote != "":
 			self.ipAddr = str(remote)
 		#else set it to the local system's IP
