@@ -13,13 +13,13 @@ class WMIConnection:
 		self.verbose = verbose
 		self.lock = lock
 		self.database = database
-		global ipAddr
+		#global ipAddr
 		#if a remote IP has been provided, set the ipAddr global to that IP
 		if remote != "":
-			ipAddr = str(remote)
+			self.ipAddr = str(remote)
 		#else set it to the local system's IP
 		else:
-			ipAddr = socket.gethostbyname(socket.gethostname())
+			self.ipAddr = socket.gethostbyname(socket.gethostname())
 		
 	#make a WMI connection with a non-standard namespace
 	def connect(self, namespace):
@@ -85,7 +85,7 @@ class WMIConnection:
 		for data in dataList:
 			try:
 				#initial value for all table entries
-				values = [ipAddr]
+				values = [self.ipAddr]
 				#for each potential element of the object, add it to the values list
 				for item in itemList:
 					values.append(self.check(data, item.replace("__","")))
@@ -99,7 +99,7 @@ class WMIConnection:
 		
 		
 	def wmiQuery(self, title, wmiString, itemList, uniqueList, tableName):
-		if (self.verbose): print("Fetching %s data from %s" % (title, ipAddr))
+		if (self.verbose): print("Fetching %s data from %s" % (title, self.ipAddr))
 		try:
 			wmiObject = eval(wmiString)
 			if self.database != "": self.dbEntry(itemList, uniqueList, tableName, wmiObject)
