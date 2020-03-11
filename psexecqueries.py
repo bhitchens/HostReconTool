@@ -66,11 +66,14 @@ class PSExecQuery:
 		db.close()
 		self.lock.release()
 		
-	def all(self):
+	def all_network(self):
 		self.ports()
-		self.route()
+		self.routes()
 		self.arp()
 		self.wireless()
+	
+	def all(self):
+		self.all_network()
 	
 	def ports(self):
 		if (self.verbose): print("Fetching Open Ports Data from %s" % (self.ipAddr))
@@ -110,7 +113,7 @@ class PSExecQuery:
 		if self.stout:
 			for line in results: print(line)
 				
-	def route(self):
+	def routes(self):
 		if (self.verbose): print("Fetching Route Data from %s" % (self.ipAddr))
 		results = self.psexec("route print", "routes")
 		if (results == 1): return

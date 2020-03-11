@@ -1,7 +1,7 @@
 from netaddr import IPNetwork
 from multiprocessing import Process, Lock
-import sys, netaddr, wmiqueries, psexecqueries, sqlite3, argparse
-import importlib
+from argparse import RawTextHelpFormatter
+import sys, netaddr, wmiqueries, psexecqueries, sqlite3, argparse, importlib
 
 def wmiConnect(ipaddr, verbose, lock, database, stout):
 	global wmiSuccess
@@ -19,8 +19,7 @@ def wmiConnect(ipaddr, verbose, lock, database, stout):
 			else:
 				print("Failed to make WMI connection to " + str(ipaddr))
 			lock.release()
-			wmiSuccess = False
-	
+			wmiSuccess = False	
 	return connection
 		
 def psexecConnect(ipaddr, verbose, lock, database, stout):
@@ -63,49 +62,23 @@ def analyze(ipaddr, verbose, database, stout, args, lock):
 	else:
 		print("Starting " + str(ipaddr) + ".")
 	lock.release()
-
-	#Run functions based on switches
-	#check for -A/--all
-	if "-A" in sys.argv or "--all" in sys.argv:
-		connection = wmiConnect(ipaddr, verbose, lock, database, stout)
-		psexec = psexecConnect(ipaddr, verbose, lock, database, stout)
-		if wmiSuccess: connection.all()
-		if pseSuccess: psexec.all()
-		return
 		
-	#Run functions for all supplied flags
-	if (args.users or args.netlogin or args.groups or args.ldisks or args.timezone or args.startup or args.profiles or args.adapters or args.process or args.services or args.shares or args.pdisks or args.memory or args.patches or args.bios or args.pnp or args.drivers or args.sysinfo or args.processors or args.os or args.products):
-		connection = wmiConnect(ipaddr, verbose, lock, database, stout)
-		if wmiSuccess:			
-			if args.sysinfo: connection.sysData()
-			if args.users: connection.userData()
-			if args.netlogin: connection.netLogin()
-			if args.groups: connection.groupData()
-			if args.ldisks: connection.logicalDisks()
-			if args.timezone: connection.timeZone()
-			if args.startup: connection.startupPrograms()
-			if args.profiles: connection.userProfiles()
-			if args.adapters: connection.networkAdapters()
-			if args.process: connection.processes()
-			if args.services: connection.services()
-			if args.shares: connection.shares()
-			if args.pdisks: connection.physicalDisks()
-			if args.memory: connection.physicalMemory()
-			if args.patches: connection.patches()
-			if args.bios: connection.bios()
-			if args.pnp: connection.pnp()
-			if args.drivers: connection.drivers()
-			if args.processors: connection.processors()
-			if args.os: connection.operatingSystem()
-			if args.products: connection.products()
-	
-	if (args.ports or args.arp or args.wireless or args.routes):
-		psexec = psexecConnect(ipaddr, verbose, lock, database, stout)
-		if pseSuccess:
-			if (args.ports): psexec.ports()
-			if (args.arp): psexec.arp()
-			if (args.wireless): psexec.wireless()
-			if (args.routes): psexec.route()
+	wmiList = ("all", "all_system", "all_users", "all_hardware", "all_software", "all_network", "users", "netlogin", "groups", "ldisks", "timezone", "startup", "profiles", "adapters", "process", "services", "shares", "pdisks", "memory", "patches", "bios", "pnp", "drivers", "sysinfo", "processors", "os", "products", "vss")
+	pseList = ("all", "all_network", "ports", "arp", "wireless", "routes")
+		
+	if "-q" in sys.argv or "--query" in sys.argv:
+		#connection = wmiConnect(ipaddr, verbose, lock, database, stout)
+		#psexec = psexecConnect(ipaddr, verbose, lock, database, stout)
+
+		for query in args.query:
+			if (query in wmiList):
+				connection = wmiConnect(ipaddr, verbose, lock, database, stout)
+				if wmiSuccess: eval("connection.{}()".format(query))
+			if (query in pseList):
+				psexec = psexecConnect(ipaddr, verbose, lock, database, stout)
+				if pseSuccess: eval("psexec.{}()".format(query))
+			if (query not in wmiList and query not in pseList):
+				print("{} is not a valid query.".format(query))
 		
 	lock.acquire()
 	if ipaddr == "":
@@ -124,38 +97,71 @@ def main():
 	verbose = False
 
 	#parse arguments
-	parser = argparse.ArgumentParser(description='Gather host data.')
+	parser = argparse.ArgumentParser(description='Gather host data.', formatter_class=RawTextHelpFormatter)
+	#Basic Settings
 	parser.add_argument("-d", "--db", nargs=1, help="Provide database name or full path to specify location")
 	parser.add_argument("-o", "--stout", action='store_true', help="Send results to Standard Out")
-	parser.add_argument("--verbose", action='store_true', help="Print verbose results")
+	parser.add_argument("-v", "--verbose", action='store_true', help="Print verbose results")
 	parser.add_argument("-i", "--ipaddr", nargs=1, help="IP Address or CIDR-Notation range of IP Addresses. Exclude for Local Machine")
-	parser.add_argument("-A", "--all", action='store_true', help="Run all switches")
-	parser.add_argument("-y", "--sysinfo", action='store_true', help="Gather System Information")
-	parser.add_argument("-u", "--users", action='store_true', help="User account data")
-	parser.add_argument("-n", "--netlogin", action='store_true', help="Network Login data")
-	parser.add_argument("-g", "--groups", action='store_true', help="Group data")
-	parser.add_argument("-l", "--ldisks", action='store_true', help="Logical Disk data")
-	parser.add_argument("-t", "--timezone", action='store_true', help="Timezone data")
-	parser.add_argument("-s", "--startup", action='store_true', help="Startup Program data")
-	parser.add_argument("--profiles", action='store_true', help="User Profiles data")
-	parser.add_argument("-a", "--adapters", action='store_true', help="Netork Adapter data")
-	parser.add_argument("-P", "--process", action='store_true', help="Processes data")
-	parser.add_argument("-S", "--services", action='store_true', help="Services data")
-	parser.add_argument("-r", "--shares", action='store_true', help="Shared Resources data")
-	parser.add_argument("-D", "--pdisks", action='store_true', help="Physical Disk data")
-	parser.add_argument("-m", "--memory", action='store_true', help="Physical Memory data")
-	parser.add_argument("-p", "--ports", action='store_true', help="Open Ports")
-	parser.add_argument("--patches", action='store_true', help="Currently Applied Patches")
-	parser.add_argument("--arp", action='store_true', help="Arp Table Data")
-	parser.add_argument("--routes", action='store_true', help="Routing Table and Interface Data")
-	parser.add_argument("-w", "--wireless", action='store_true', help="Wireless Connection Data")
-	parser.add_argument("-b", "--bios", action='store_true', help="BIOS Data")
-	parser.add_argument("--pnp", action='store_true', help="Plug-n-play Devices Data")
-	parser.add_argument("--drivers", action='store_true', help="Drivers Data")
-	parser.add_argument("--processors", action='store_true', help="Processor Data")
-	parser.add_argument("--os", action='store_true', help="Operating System Data")
-	parser.add_argument("--products", action='store_true', help="Products Data (Slow - Not Included in --all")
 	
+	#Groups
+	optionsString = "Run groups of queries:\n"
+	optionsString += ("\t{:<15} {:<20}\n" * 6).format(
+	"all", "Run all queries",
+	"all_system", "Run all system queries", 
+	"all_users", "Run all users queries",
+	"all_hardware", "Run all hardware queries",
+	"all_software", "Run all software queries",
+	"all_network", "Run all network queries")
+	
+	#Information about system
+	optionsString += "Information about system:\n"
+	optionsString += ("\t{:<15} {:<20}\n" * 6).format(
+	"sysinfo", "Gather System Information", 
+	"patches", "Currently Applied Patches (Quick Fix Engineering)",
+	"timezone", "Timezone data", 
+	"bios", "BIOS Data",
+	"os", "Operating System Data",
+	"vss", "Volume Shadow Copy Data")
+	
+	#Information about users
+	optionsString += "\nInformation about users:\n"
+	optionsString += ("\t{:<15} {:<20}\n" * 4).format(
+	"users", "User account data",
+	"netlogin", "Network Login data",
+	"profiles", "User Profiles data",
+	"groups", "Group data")
+	
+	#Information about hardware
+	optionsString += "\nInformation about hardware:\n"
+	optionsString += ("\t{:<15} {:<20}\n" * 5).format(
+	"pdisks", "Physical Disk data",
+	"ldisks", "Logical Disk data",
+	"memory", "Physical Memory data",
+	"processors", "Processor Data",
+	"pnp", "Plug-n-play Devices Data")
+	
+	#Information about software
+	optionsString += "\nInformation about software:\n"
+	optionsString += ("\t{:<15} {:<20}\n" * 5).format(
+	"startup", "Startup Program data",
+	"drivers", "Drivers Data",
+	"process", "Processes data",
+	"services", "Services data",
+	"products", "Products Data")
+	
+	#Information about network
+	optionsString += "\nInformation about network:\n"
+	optionsString += ("\t{:<15} {:<20}\n" * 6).format(
+	"adapters", "Netork Adapter data",
+	"ports", "Open Ports",
+	"arp", "Arp Table Data",
+	"routes", "Routing Table and Interface Data",
+	"wireless", "Wireless Connection Data",
+	"shares", "Shared Resources data")
+	
+	parser.add_argument("-q", "--query", nargs='+', help="List data to be queried.\n\n" + optionsString)
+		
 	args = parser.parse_args()
 		
 	#check for -d switch
