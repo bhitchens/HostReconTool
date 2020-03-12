@@ -63,7 +63,7 @@ def analyze(ipaddr, verbose, database, stout, args, lock):
 		print("Starting " + str(ipaddr) + ".")
 	lock.release()
 		
-	wmiList = ("all", "all_system", "all_users", "all_hardware", "all_software", "all_network", "users", "netlogin", "groups", "ldisks", "timezone", "startup", "profiles", "adapters", "process", "services", "shares", "pdisks", "memory", "patches", "bios", "pnp", "drivers", "sysinfo", "processors", "os", "products", "vss")
+	wmiList = ("all", "all_system", "all_user", "all_hardware", "all_software", "all_network", "users", "netlogin", "groups", "ldisks", "timezone", "startup", "profiles", "adapters", "process", "services", "shares", "pdisks", "memory", "patches", "bios", "pnp", "drivers", "sysinfo", "processors", "os", "products", "vss")
 	pseList = ("all", "all_network", "ports", "arp", "wireless", "routes")
 		
 	if "-q" in sys.argv or "--query" in sys.argv:
@@ -109,7 +109,7 @@ def main():
 	optionsString += ("\t{:<15} {:<20}\n" * 6).format(
 	"all", "Run all queries",
 	"all_system", "Run all system queries", 
-	"all_users", "Run all users queries",
+	"all_user", "Run all users queries",
 	"all_hardware", "Run all hardware queries",
 	"all_software", "Run all software queries",
 	"all_network", "Run all network queries")
