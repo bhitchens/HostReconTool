@@ -14,54 +14,54 @@ script must be run with administrator priviledges. For remote targets, it must b
 with administrator priviledges on the remote target, and the remote target must have WMI queries and 
 SMB allowed.
 
-  -h, --help					show this help message and exit
-  -d DB, --db DB				Provide database name or full path to specify location
-  -o, --stout					Send results to Standard Out
-  -v, --verbose					Print verbose results
+  -h, --help			show this help message and exit
+  -d DB, --db DB		Provide database name or full path to specify location
+  -o, --stout			Send results to Standard Out
+  -v, --verbose			Print verbose results
   -i IPADDR, --ipaddr IPADDR	IP Address or CIDR-Notation range of IP Addresses. Exclude for Local Machine
   -q QUERY [QUERY ...], --query QUERY [QUERY ...]
-								List data to be queried.
+				List data to be queried.
 	
-								Run groups of queries:
-									all             Run all queries
-									all_system      Run all system queries
-									all_user        Run all users queries
-									all_hardware    Run all hardware queries
-									all_software    Run all software queries
-									all_network     Run all network queries
-									
-								Information about system:
-									sysinfo         Gather System Information
-									patches         Currently Applied Patches (Quick Fix Engineering)
-									timezone        Timezone data
-									bios            BIOS Data
-									os              Operating System Data
-									vss             Volume Shadow Copy Data
-									
-								Information about users:
-									users           User account data
-									netlogin        Network Login data
-									profiles        User Profiles data
-									groups          Group data
+					Run groups of queries:
+						all             Run all queries
+						all_system      Run all system queries
+						all_user        Run all users queries
+						all_hardware    Run all hardware queries
+						all_software    Run all software queries
+						all_network     Run all network queries
+		
+					Information about system:
+						sysinfo         Gather System Information
+						patches         Currently Applied Patches (Quick Fix Engineering)
+						timezone        Timezone data
+						bios            BIOS Data
+						os              Operating System Data
+						vss             Volume Shadow Copy Data
+						
+					Information about users:
+						users           User account data
+						netlogin        Network Login data
+						profiles        User Profiles data
+						groups          Group data
 								
-								Information about hardware:
-									pdisks          Physical Disk data
-									ldisks          Logical Disk data
-									memory          Physical Memory data
-									processors      Processor Data
-									pnp             Plug-n-play Devices	Data
+					Information about hardware:
+						pdisks          Physical Disk data
+						ldisks          Logical Disk data
+						memory          Physical Memory data
+						processors      Processor Data
+						pnp             Plug-n-play Devices	Data
 									
-								Information about software:
-									startup         Startup Program data
-									drivers         Drivers Data
-									process         Processes data
-									services        Services data
-									products        Products Data
+					Information about software:
+						startup         Startup Program data
+						drivers         Drivers Data
+						process         Processes data
+						services        Services data
+						products        Products Data
 
-								Information about network:
-									adapters        Netork Adapter data
-									ports           Open Ports
-									arp             Arp Table Data
-									routes          Routing Table and Interface Data
-									wireless        Wireless Connection Data
-									shares          Shared Resources data
+					Information about network:
+						adapters        Netork Adapter data
+						ports           Open Ports
+						arp             Arp Table Data
+						routes          Routing Table and Interface Data
+						wireless        Wireless Connection Data
+						shares          Shared Resources data
