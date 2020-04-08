@@ -14,11 +14,11 @@ script must be run with administrator priviledges. For remote targets, it must b
 with administrator priviledges on the remote target, and the remote target must have WMI queries and 
 SMB allowed.
 
-  -h, --help	            	show this help message and exit
-  -d DB, --db DB	        	Provide database name or full path to specify location
-  -o, --stout       	    	Send results to Standard Out
-  -v, --verbose         		Print verbose results
-  -i IPADDR, --ipaddr IPADDR    IP Address or CIDR-Notation range of IP Addresses. Exclude for Local Machine
+  -h, --help					show this help message and exit
+  -d DB, --db DB				Provide database name or full path to specify location
+  -o, --stout					Send results to Standard Out
+  -v, --verbose					Print verbose results
+  -i IPADDR, --ipaddr IPADDR	IP Address or CIDR-Notation range of IP Addresses. Exclude for Local Machine
   -q QUERY [QUERY ...], --query QUERY [QUERY ...]
 								List data to be queried.
 	
