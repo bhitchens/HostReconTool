@@ -7,9 +7,9 @@ python WMI: https://pypi.python.org/pypi/WMI/
 netaddr: https://pypi.python.org/pypi/netaddr
 psexec: https://docs.microsoft.com/en-us/sysinternals/downloads/psexec
 
-Run HRT.py with desired switches.
+Run HRT.py with desired arguments.
 
-If run run without -r or --remote, the program will run the provided switches on the local system. The 
+If run run without -r or --remote, the program will run the provided arguments on the local system. The 
 script must be run with administrator priviledges. For remote targets, it must be run with an account 
 with administrator priviledges on the remote target, and the remote target must have WMI queries and 
 SMB allowed.
