@@ -19,8 +19,9 @@ SMB allowed.
   -o, --stout			Send results to Standard Out
   -v, --verbose			Print verbose results
   -i IPADDR, --ipaddr IPADDR	IP Address or CIDR-Notation range of IP Addresses. Exclude for Local Machine
-  -q QUERY [QUERY ...], --query QUERY [QUERY ...]
-				List data to be queried.
+  -q QUERY [QUERY ...], --query QUERY [QUERY ...] List data to be queried.
+  
+				QUERY options:
 	
 					Run groups of queries:
 						all             Run all queries
